@@ -92,6 +92,20 @@ namespace utilities
         return (matlab::data::ArrayType::SPARSE_DOUBLE == x.getType());
     }
 
+    inline bool isvector(const matlab::data::Array &x)
+    {
+        auto dims = x.getDimensions();
+        bool rowVector = (dims.size() == 2) && (dims[0] == 1);
+        bool colVector = (dims.size() == 2) && (dims[1] == 1);
+        return isnumeric(x) && (rowVector || colVector);
+    }
+
+    inline bool ismatrix(const matlab::data::Array &x)
+    {
+        auto dims = x.getDimensions();
+        return isnumeric(x) && (dims.size() == 2);
+    }
+
     inline std::string getstringvalue(const matlab::data::Array &x)
     {
         if (matlab::data::ArrayType::CHAR == x.getType())

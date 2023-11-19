@@ -12,13 +12,12 @@ find_package(Matlab REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
 
-
 add_library(MexUtilities INTERFACE)
 target_include_directories(MexUtilities INTERFACE 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utilities>
     $<INSTALL_INTERFACE:include/utilities>
 )
-target_link_libraries(MexUtilities INTERFACE Matlab::mex fmt::fmt-header-only)
+target_link_libraries(MexUtilities INTERFACE Matlab::mex Eigen3::Eigen fmt::fmt-header-only)
 
 target_compile_features(MexUtilities INTERFACE cxx_std_17)
 
