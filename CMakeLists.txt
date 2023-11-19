@@ -6,6 +6,8 @@ project(MexUtilties
         DESCRIPTION "Utilities for Matlab mex files"
         LANGUAGES CXX)
 
+option(BUILD_TESTS "Build tests" ON)
+
 find_package(Matlab REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
@@ -28,6 +30,7 @@ install(TARGETS MexUtilities EXPORT MexUtilitiesConfig
 install(DIRECTORY utilities/ DESTINATION include/utilities)
 install(EXPORT MexUtilitiesConfig DESTINATION share/MexUtilities/cmake)
 
-# Existing code
+if (BUILD_TESTS)
 enable_testing()
 add_subdirectory(test)
+endif()

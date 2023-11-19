@@ -86,6 +86,9 @@ codegen/
 # Octave session info
 octave-workspace
 
+# Test outputs
+*.xml
+
 ### vcpkg ###
 # Vcpkg
 
