@@ -13,6 +13,8 @@ find_package(fmt CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
 
 add_library(MexUtilities INTERFACE)
+add_library(MexUtilities::MexUtilities ALIAS MexUtilities)
+
 target_include_directories(MexUtilities INTERFACE 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utilities>
     $<INSTALL_INTERFACE:include/utilities>
