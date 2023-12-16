@@ -122,10 +122,10 @@ namespace utilities
     }
 
     template <typename... _Args>
-    void error(fmt::v10::format_string<_Args...> __fmt, _Args &&...__args)
+    void error(fmt::format_string<_Args...> __fmt, _Args &&...__args)
     {
+        std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
         matlab::data::ArrayFactory factory;
-        std::string message = fmt::format(__fmt, __args...);
         matlabPtr->feval(
             matlab::engine::convertUTF8StringToUTF16String("error"),
             0,
@@ -133,10 +133,10 @@ namespace utilities
     }
 
     template <typename... _Args>
-    void printf(fmt::v10::format_string<_Args...> __fmt, _Args &&...__args)
+    void printf(fmt::format_string<_Args...> __fmt, _Args &&...__args)
     {
+        std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
         matlab::data::ArrayFactory factory;
-        std::string message = fmt::format(__fmt, __args...);
         matlabPtr->feval(
             matlab::engine::convertUTF8StringToUTF16String("fprintf"),
             0,
