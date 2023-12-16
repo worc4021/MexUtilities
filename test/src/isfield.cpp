@@ -19,7 +19,7 @@ public:
             utilities::error("First input must be a struct");
 
         if (!utilities::isstring(inputs[1]))
-            utilities::error("Second input must be a string");
+            utilities::error("Second input must be a {}.","string");
 
         auto field = utilities::getstringvalue(inputs[1]);
 
