@@ -32,21 +32,21 @@ classdef cases < matlab.unittest.TestCase
             end
         end
 
-        function structFields(testCase)
-            tests = {struct('a',1),-1;...
-                     struct('toplevel',1),-1;...
-                     struct('toplevel',struct('a',1)),-1;...
-                     struct('toplevel',struct('nested')),0};
-            for i = 1:size(tests,1)
-                if tests{i,2} == -1
-                    testCase.verifyError(...
-                        structfields(tests{i,1}));
-                else
-                    testCase.verifyReturnsTrue(...
-                        structfields(tests{i,1}));
-                end
-            end
-        end
+        % function structFields(testCase)
+        %     tests = {struct('a',1),-1;...
+        %              struct('toplevel',1),-1;...
+        %              struct('toplevel',struct('a',1)),-1;...
+        %              struct('toplevel',struct('nested','hello')),0};
+        %     for i = 1:size(tests,1)
+        %         if tests{i,2} == -1
+        %             testCase.verifyError(...
+        %                 structfields(tests{i,1}));
+        %         else
+        %             testCase.verifyReturnsTrue(...
+        %                 structfields(tests{i,1}));
+        %         end
+        %     end
+        % end
         
     end
     

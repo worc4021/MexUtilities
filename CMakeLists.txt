@@ -32,6 +32,8 @@ install(DIRECTORY utilities/ DESTINATION include/utilities)
 install(EXPORT MexUtilitiesConfig DESTINATION share/MexUtilities/cmake)
 
 if (BUILD_TESTS)
+include(CTest)
+find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM)
 enable_testing()
 add_subdirectory(test)
 endif()

@@ -20,3 +20,8 @@ matlab_add_mex(
     LINK_TO MexUtilities
     R2018a
 )
+
+matlab_add_unit_test(
+    NAME mexTest
+    UNITTEST_FILE ${CMAKE_CURRENT_SOURCE_DIR}/matlab/cases.m
+)
