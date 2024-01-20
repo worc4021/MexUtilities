@@ -187,176 +187,209 @@ namespace utilities
         matlab::data::StructArray stmp = factory.createStructArray({1, 1}, fieldnames);
         for (const auto &field : str.getFieldNames())
         {
-            // This beauty is needed for some reason on windows. On mac & linux 
+            // This beauty is needed for some reason on windows. On mac & linux
             // stmp[0][field] = std::move(str[0][field]);
             // works just fine. But on windows, it throws a compiler error.
             switch (str[0][field].getType())
             {
-                case matlab::data::ArrayType::LOGICAL: {
-                    matlab::data::TypedArray<bool> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::CHAR: {
-                    matlab::data::CharArray tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::MATLAB_STRING: {
-                    matlab::data::StringArray tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::DOUBLE: {
-                    matlab::data::TypedArray<double> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::SINGLE: {
-                    matlab::data::TypedArray<float> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::INT8: {
-                    matlab::data::TypedArray<int8_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::UINT8: {
-                    matlab::data::TypedArray<uint8_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::INT16: {
-                    matlab::data::TypedArray<int16_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::UINT16: {
-                    matlab::data::TypedArray<uint16_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::INT32: {
-                    matlab::data::TypedArray<int32_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::UINT32: {
-                    matlab::data::TypedArray<uint32_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::INT64: {
-                    matlab::data::TypedArray<int64_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::UINT64: {
-                    matlab::data::TypedArray<uint64_t> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_DOUBLE: {
-                    matlab::data::TypedArray<std::complex<double>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_SINGLE: {
-                    matlab::data::TypedArray<std::complex<float>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_INT8: {
-                    matlab::data::TypedArray<std::complex<int8_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_UINT8: {
-                    matlab::data::TypedArray<std::complex<uint8_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_INT16: {
-                    matlab::data::TypedArray<std::complex<int16_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_UINT16: {
-                    matlab::data::TypedArray<std::complex<uint16_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_INT32: {
-                    matlab::data::TypedArray<std::complex<int32_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_UINT32: {
-                    matlab::data::TypedArray<std::complex<uint32_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_INT64: {
-                    matlab::data::TypedArray<std::complex<int64_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::COMPLEX_UINT64: {
-                    matlab::data::TypedArray<std::complex<uint64_t>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::CELL: {
-                    matlab::data::CellArray tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::STRUCT: {
-                    matlab::data::StructArray tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::OBJECT: {
-                    matlab::data::ObjectArray tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::VALUE_OBJECT: {
-                    // not implemented because I'm not sure what this is.
-                    break;
-                }
-                case matlab::data::ArrayType::HANDLE_OBJECT_REF: {
-                    // Similarly, not sure what this is. Generally, we cannot "use" 
-                    // matlab callbacks in a mex/cpp environment, instead we have to 
-                    // call a string with feval and pass arguments into matlab. So, 
-                    // hopefully this doesn't trip up anything.
-                    break;
-                }
-                case matlab::data::ArrayType::ENUM: {
-                    matlab::data::TypedArray<matlab::data::Enumeration> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::SPARSE_LOGICAL: {
-                    matlab::data::SparseArray<bool> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::SPARSE_DOUBLE: {
-                    matlab::data::SparseArray<double> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::SPARSE_COMPLEX_DOUBLE: {
-                    matlab::data::SparseArray<std::complex<double>> tmp = std::move(str[0][field]);
-                    stmp[0][field] = std::move(tmp);
-                    break;
-                }
-                case matlab::data::ArrayType::UNKNOWN: {
-                    throw std::runtime_error("addSingleField: unknown array type");
-                    break;
-                }
+            case matlab::data::ArrayType::LOGICAL:
+            {
+                matlab::data::TypedArray<bool> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::CHAR:
+            {
+                matlab::data::CharArray tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::MATLAB_STRING:
+            {
+                matlab::data::StringArray tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::DOUBLE:
+            {
+                matlab::data::TypedArray<double> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::SINGLE:
+            {
+                matlab::data::TypedArray<float> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::INT8:
+            {
+                matlab::data::TypedArray<int8_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::UINT8:
+            {
+                matlab::data::TypedArray<uint8_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::INT16:
+            {
+                matlab::data::TypedArray<int16_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::UINT16:
+            {
+                matlab::data::TypedArray<uint16_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::INT32:
+            {
+                matlab::data::TypedArray<int32_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::UINT32:
+            {
+                matlab::data::TypedArray<uint32_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::INT64:
+            {
+                matlab::data::TypedArray<int64_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::UINT64:
+            {
+                matlab::data::TypedArray<uint64_t> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_DOUBLE:
+            {
+                matlab::data::TypedArray<std::complex<double>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_SINGLE:
+            {
+                matlab::data::TypedArray<std::complex<float>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_INT8:
+            {
+                matlab::data::TypedArray<std::complex<int8_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_UINT8:
+            {
+                matlab::data::TypedArray<std::complex<uint8_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_INT16:
+            {
+                matlab::data::TypedArray<std::complex<int16_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_UINT16:
+            {
+                matlab::data::TypedArray<std::complex<uint16_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_INT32:
+            {
+                matlab::data::TypedArray<std::complex<int32_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_UINT32:
+            {
+                matlab::data::TypedArray<std::complex<uint32_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_INT64:
+            {
+                matlab::data::TypedArray<std::complex<int64_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::COMPLEX_UINT64:
+            {
+                matlab::data::TypedArray<std::complex<uint64_t>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::CELL:
+            {
+                matlab::data::CellArray tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::STRUCT:
+            {
+                matlab::data::StructArray tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::OBJECT:
+            {
+                matlab::data::ObjectArray tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::VALUE_OBJECT:
+            {
+                // not implemented because I'm not sure what this is.
+                break;
+            }
+            case matlab::data::ArrayType::HANDLE_OBJECT_REF:
+            {
+                // Similarly, not sure what this is. Generally, we cannot "use"
+                // matlab callbacks in a mex/cpp environment, instead we have to
+                // call a string with feval and pass arguments into matlab. So,
+                // hopefully this doesn't trip up anything.
+                break;
+            }
+            case matlab::data::ArrayType::ENUM:
+            {
+                matlab::data::TypedArray<matlab::data::Enumeration> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::SPARSE_LOGICAL:
+            {
+                matlab::data::SparseArray<bool> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::SPARSE_DOUBLE:
+            {
+                matlab::data::SparseArray<double> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::SPARSE_COMPLEX_DOUBLE:
+            {
+                matlab::data::SparseArray<std::complex<double>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::UNKNOWN:
+            {
+                throw std::runtime_error("addSingleField: unknown array type");
+                break;
+            }
             }
         }
         stmp[0][fieldname] = value;
@@ -453,4 +486,16 @@ namespace utilities
         return retVal[0];
     }
 
+    inline std::vector<matlab::data::Array> feval(
+        const matlab::data::Array &handle,
+        const std::size_t numReturned,
+        const std::vector<matlab::data::Array> &arguments)
+    {
+        std::vector<matlab::data::Array> theArgs({handle});
+        theArgs.insert(theArgs.end(), arguments.begin(), arguments.end());
+        return matlabPtr->feval(
+            matlab::engine::convertUTF8StringToUTF16String("feval"),
+            numReturned,
+            theArgs);
+    }
 } // namespace utilites
