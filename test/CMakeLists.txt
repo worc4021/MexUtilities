@@ -30,5 +30,12 @@ matlab_add_mex(
 
 matlab_add_unit_test(
     NAME mexTest
-    UNITTEST_FILE ${CMAKE_CURRENT_SOURCE_DIR}/matlab/cases.m
+    UNITTEST_FILE cases.m
+    ADDITIONAL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/matlab $<TARGET_FILE_DIR:isfield_mex>
+)
+
+matlab_add_unit_test(
+    NAME sparseTest
+    UNITTEST_FILE sparse_test.m
+    ADDITIONAL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/matlab $<TARGET_FILE_DIR:sparse_mex>
 )

@@ -27,8 +27,8 @@ classdef cases < matlab.unittest.TestCase
                      struct('a',1),"b"};
             for i = 1:size(tests,1)
                 testCase.verifyEqual(...
-                    builtin('isfield',tests{i,1},tests{i,2}),...
-                    isfield(tests{i,1},tests{i,2}));
+                    isfield(tests{i,1},tests{i,2}),...
+                    isfield_mex(tests{i,1},tests{i,2}));
             end
         end
 
