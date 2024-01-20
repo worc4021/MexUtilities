@@ -159,7 +159,7 @@ namespace utilities
             }
             else
             {
-                utilities::error(std::string("getfield: " + fieldname + " not found"));
+                utilities::error("getfield: {} not found.", fieldname);
             }
         }
         else
@@ -172,7 +172,7 @@ namespace utilities
             }
             else
             {
-                utilities::error(std::string("getfield: " + fieldname + " not found"));
+                utilities::error("getfield: {} not found.", fieldname);
             }
         }
         return str;
