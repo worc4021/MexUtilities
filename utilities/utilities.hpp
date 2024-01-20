@@ -110,12 +110,12 @@ namespace utilities
     {
         if (matlab::data::ArrayType::CHAR == x.getType())
         {
-            matlab::data::CharArray retVal(std::move(x));
+            matlab::data::CharArray retVal(x);
             return retVal.toAscii();
         }
         else if (matlab::data::ArrayType::MATLAB_STRING == x.getType())
         {
-            matlab::data::StringArray retVal(std::move(x));
+            matlab::data::StringArray retVal(x);
             return retVal[0];
         }
         return std::string("");
@@ -143,7 +143,7 @@ namespace utilities
             std::vector<matlab::data::Array>({factory.createScalar(message)}));
     }
 
-    inline matlab::data::Array getfield(const matlab::data::Array &s, std::string fieldname)
+    inline matlab::data::Array getfield(matlab::data::Array &s, std::string fieldname)
     {
         if (matlab::data::ArrayType::STRUCT != s.getType())
             utilities::error("getfield: input must be a struct");
@@ -484,7 +484,7 @@ namespace utilities
     template <typename T>
     T getscalar(const matlab::data::Array &x)
     {
-        matlab::data::TypedArray<T> retVal(std::move(x));
+        matlab::data::TypedArray<T> retVal(x);
         return retVal[0];
     }
 
