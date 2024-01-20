@@ -430,35 +430,37 @@ namespace utilities
         }
     }
 
-    inline void mapToComplex(const matlab::data::TypedArray<double> &x, matlab::data::TypedArray<std::complex<double>> &y)
+    template<std::floating_point T>
+    void mapToComplex(const matlab::data::TypedArray<T> &x, matlab::data::TypedArray<std::complex<T>> &y)
     {
-        auto dims = x.getDimensions();
+        matlab::data::ArrayDimensions dims = x.getDimensions();
         if (dims.size() == 2)
         {
-            for (auto iRow = 0; iRow < dims[0]; iRow++)
+            for (std::size_t iRow = 0; iRow < dims[0]; iRow++)
             {
-                for (auto jCol = 0; jCol < dims[1]; jCol++)
+                for (std::size_t jCol = 0; jCol < dims[1]; jCol++)
                 {
-                    y[iRow][jCol] = std::complex<double>(x[iRow][jCol], 0.);
+                    y[iRow][jCol] = std::complex<T>(x[iRow][jCol], 0.);
                 }
             }
         }
         else if (dims.size() == 3)
         {
-            for (auto iRow = 0; iRow < dims[0]; iRow++)
+            for (std::size_t iRow = 0; iRow < dims[0]; iRow++)
             {
-                for (auto jCol = 0; jCol < dims[1]; jCol++)
+                for (std::size_t jCol = 0; jCol < dims[1]; jCol++)
                 {
-                    for (auto kTen = 0; kTen < dims[2]; kTen++)
+                    for (std::size_t kTen = 0; kTen < dims[2]; kTen++)
                     {
-                        y[iRow][jCol][kTen] = std::complex<double>(x[iRow][jCol][kTen], 0.);
+                        y[iRow][jCol][kTen] = std::complex<T>(x[iRow][jCol][kTen], 0.);
                     }
                 }
             }
         }
     }
-
-    inline matlab::data::TypedArray<std::complex<double>> getascomplex(const matlab::data::Array &x)
+    
+    template<std::floating_point T>
+    matlab::data::TypedArray<std::complex<T>> getascomplex(const matlab::data::Array &x)
     {
         matlab::data::ArrayFactory factory;
         if (matlab::data::ArrayType::COMPLEX_DOUBLE == x.getType())
@@ -467,8 +469,8 @@ namespace utilities
         }
         else if (matlab::data::ArrayType::DOUBLE == x.getType())
         {
-            matlab::data::TypedArray<double> xref(std::move(x));
-            matlab::data::TypedArray<std::complex<double>> retval = factory.createArray<std::complex<double>>(xref.getDimensions());
+            matlab::data::TypedArray<T> xref(std::move(x));
+            matlab::data::TypedArray<std::complex<T>> retval = factory.createArray<std::complex<T>>(xref.getDimensions());
             utilities::mapToComplex(xref, retval);
             return std::move(retval);
         }
@@ -476,7 +478,7 @@ namespace utilities
         {
             utilities::error("getascomplex: input must be numeric");
         }
-        return factory.createArray<std::complex<double>>({0, 0});
+        return factory.createArray<std::complex<T>>({0, 0});
     }
 
     template <typename T>
@@ -495,7 +497,7 @@ namespace utilities
         theArgs.insert(theArgs.end(), arguments.begin(), arguments.end());
         return matlabPtr->feval(
             matlab::engine::convertUTF8StringToUTF16String("feval"),
-            numReturned,
+            static_cast<int>(numReturned),
             theArgs);
     }
 } // namespace utilites

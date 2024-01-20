@@ -22,6 +22,7 @@ public:
     Sparse(std::size_t m, std::size_t n) : m(m), n(n) {}
     Sparse(const Sparse<T>& A) = default;
     Sparse(Sparse<T>&& A) = default;
+    Sparse operator=(const Sparse&) = delete;
 
 
     std::size_t getNumberOfRows() const { return m; }
