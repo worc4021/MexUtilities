@@ -19,7 +19,7 @@ target_include_directories(MexUtilities INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utilities>
     $<INSTALL_INTERFACE:include/utilities>
 )
-target_link_libraries(MexUtilities INTERFACE Matlab::mex Eigen3::Eigen fmt::fmt)
+target_link_libraries(MexUtilities INTERFACE Matlab::mex Eigen3::Eigen fmt::fmt-header-only)
 
 target_compile_features(MexUtilities INTERFACE cxx_std_20)
 
