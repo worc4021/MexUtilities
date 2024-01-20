@@ -1,9 +1,11 @@
 #pragma once
 #include "utilities.hpp"
+#include <type_traits>
+#include <concepts>
 
 namespace utilities {
 
-template<typename T>
+template<std::floating_point T>
 class Sparse {
 private:
     std::size_t m{}, n{};
@@ -65,14 +67,19 @@ public:
         }
     }
 
-    void iRow(std::size_t* rowPtr) const {
-        for (const auto& elem : iOffset)
-            *(rowPtr++) = elem % m;
+    template<std::integral Index>
+    void iRow(Index* rowPtr) const {
+        std::transform(iOffset.cbegin(), iOffset.cend(), rowPtr, [&](std::size_t elem) { return elem % m; });
     }
 
-    void jCol(std::size_t* colPtr) const {
-        for (const auto& elem : iOffset)
-            *(colPtr++) = elem / m;
+    template<std::integral Index>
+    void jCol(Index* colPtr) const {
+        std::transform(iOffset.cbegin(), iOffset.cend(), colPtr, [&](std::size_t elem) { return elem / m; });
+    }
+
+    template<std::floating_point Number>
+    void val(Number* valPtr) const {
+        std::transform(values.cbegin(), values.cend(), valPtr, [](T elem) { return elem; });
     }
 
     matlab::data::SparseArray<T> get() const
