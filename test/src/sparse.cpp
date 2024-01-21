@@ -24,7 +24,7 @@ commands getcommand(const std::string& command) {
         return commands::values;
     else
         utilities::error("Unknown command");
-        return commands::unknown;
+    return commands::unknown;
 }
 
 class MexFunction 
@@ -80,6 +80,10 @@ public:
                 A.val<double>(val_p.get());
                 if (outputs.size())
                     outputs[0] = factory.createArrayFromBuffer<double>({ A.getNumberOfNonZeroElements(),1 }, std::move(val_p));
+                break;
+            }
+            case commands::unknown: {
+                utilities::error("unknown command passed.");
                 break;
             }
         }
