@@ -134,6 +134,17 @@ namespace utilities
     }
 
     template <typename... _Args>
+    void warning(fmt::format_string<_Args...> __fmt, _Args &&...__args)
+    {
+        std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
+        matlab::data::ArrayFactory factory;
+        matlabPtr->feval(
+            matlab::engine::convertUTF8StringToUTF16String("warning"),
+            0,
+            std::vector<matlab::data::Array>({ factory.createScalar(message) }));
+    }
+
+    template <typename... _Args>
     void printf(fmt::format_string<_Args...> __fmt, _Args &&...__args)
     {
         std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
