@@ -12,10 +12,8 @@ namespace utilities
         return (matlab::data::ArrayType::STRUCT == x.getType());
     }
 
-    inline bool isfield(const matlab::data::Array &s, std::string fieldname)
+    inline bool isfield(const matlab::data::StructArray &s, const std::string& fieldname)
     {
-        if (matlab::data::ArrayType::STRUCT != s.getType())
-            return false;
         matlab::data::StructArray str(s);
         auto fieldnames = str.getFieldNames();
         auto idx = fieldname.find_first_of('.');
@@ -29,7 +27,10 @@ namespace utilities
             std::string nestedlevels = fieldname.substr(idx + 1);
             if (std::find(fieldnames.begin(), fieldnames.end(), toplevel) != fieldnames.end())
             {
-                return utilities::isfield(str[0][toplevel], nestedlevels);
+                if (utilities::isstruct(str[0][toplevel]))
+                    return utilities::isfield(str[0][toplevel], nestedlevels);
+                else
+                    return true;
             }
             else
             {
@@ -143,7 +144,7 @@ namespace utilities
             std::vector<matlab::data::Array>({factory.createScalar(message)}));
     }
 
-    inline matlab::data::Array getfield(matlab::data::Array &s, std::string fieldname)
+    inline matlab::data::Array getfield(const matlab::data::Array &s, std::string fieldname)
     {
         if (matlab::data::ArrayType::STRUCT != s.getType())
             utilities::error("getfield: input must be a struct");
