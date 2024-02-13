@@ -2,6 +2,7 @@
 #include "utilities.hpp"
 #include <type_traits>
 #include <concepts>
+#include <span>
 
 namespace utilities {
 
@@ -67,6 +68,16 @@ public:
         }
     }
 
+    void set(const matlab::data::Array& A) {
+        if (utilities::issparse(A)) {
+            matlab::data::SparseArray<T> B(A);
+            set(B);
+        } else {
+            matlab::data::TypedArray<T> B(A);
+            set(B);
+        }
+    }
+
     void updateValues(const matlab::data::SparseArray<T>& B) {
         std::size_t kA = 0;
         matlab::data::SparseIndex idx;
@@ -92,13 +103,28 @@ public:
     }
 
     template<std::integral Index>
+    void iRow(std::span<Index> rowSpan) const {
+        std::transform(iOffset.cbegin(), iOffset.cend(), rowSpan.begin(), [&](std::size_t elem) { return elem % m; });
+    }
+
+    template<std::integral Index>
     void jCol(Index* colPtr) const {
         std::transform(iOffset.cbegin(), iOffset.cend(), colPtr, [&](std::size_t elem) { return elem / m; });
+    }
+
+    template<std::integral Index>
+    void jCol(std::span<Index> colSpan) const {
+        std::transform(iOffset.cbegin(), iOffset.cend(), colSpan.begin(), [&](std::size_t elem) { return elem / m; });
     }
 
     template<std::floating_point Number>
     void val(Number* valPtr) const {
         std::transform(values.cbegin(), values.cend(), valPtr, [](T elem) { return elem; });
+    }
+
+    template<std::floating_point Number>
+    void val(std::span<Number> valSpan) const {
+        std::transform(values.cbegin(), values.cend(), valSpan.begin(), [](T elem) { return elem; });
     }
 
     matlab::data::SparseArray<T> get() const
