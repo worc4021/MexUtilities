@@ -49,6 +49,24 @@ public:
         }
     }
 
+    void set(const matlab::data::TypedArray<T>& A) {
+        if (!iOffset.empty())
+            iOffset.clear();
+        if (!values.empty())
+            values.clear();
+        m = A.getDimensions()[0];
+        n = A.getDimensions()[1];
+        
+        for (std::size_t jCol = 0; jCol < n; jCol++) {
+            for (std::size_t iRow = 0; iRow < m; iRow++) {
+                if (std::abs(A[iRow][jCol]) > std::numeric_limits<T>::epsilon()) {
+                    iOffset.push_back(linearIndex(iRow,jCol));
+                    values.push_back(A[iRow][jCol]);
+                }
+            }
+        }
+    }
+
     void updateValues(const matlab::data::SparseArray<T>& B) {
         std::size_t kA = 0;
         matlab::data::SparseIndex idx;

@@ -1,6 +1,7 @@
 #pragma once
 #include "MatlabDataArray.hpp"
 #include "utilities.hpp"
+#if defined(USE_EIGEN)
 #include <Eigen/Dense>
 
 namespace utilities::eigen {
@@ -33,3 +34,5 @@ inline matlab::data::TypedArray<double> convert(const Eigen::MatrixXd& x) {
 }
 
 } // namespace utilities::eigen
+
+#endif // defined(USE_EIGEN)

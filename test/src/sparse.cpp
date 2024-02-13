@@ -48,8 +48,13 @@ public:
             case commands::set: {
                 if (inputs.size() < 2)
                     utilities::error("A sparse matrix must be passed to set.");
-                matlab::data::SparseArray<double> Amex = std::move(inputs[1]);
-                A.set(Amex);
+                if (utilities::issparse(inputs[1])){
+                    matlab::data::SparseArray<double> Amex = std::move(inputs[1]);
+                    A.set(Amex);
+                } else {
+                    matlab::data::TypedArray<double> Amex = std::move(inputs[1]);
+                    A.set(Amex);
+                }
                 if (outputs.size())
                     outputs[0] = A.get();
                 break;

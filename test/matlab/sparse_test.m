@@ -34,6 +34,17 @@ classdef sparse_test < matlab.unittest.TestCase
             verifyEqual(testCase,double(iR+1),iRow);
             verifyEqual(testCase,double(jC+1),jCol);
         end
+
+        function denseTest(testCase, dimensions)
+            if dimensions > 1000
+                return
+            end
+            A = sprand(dimensions,dimensions,1/dimensions);
+            A1 = full(A);
+            A2 = sparse_mex("set",A1);
+            
+            verifyEqual(testCase,A,A2);
+        end
     end
     
 end

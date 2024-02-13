@@ -14,12 +14,14 @@ matlab_add_mex(
     R2018a
 )
 
-matlab_add_mex(
-    NAME eigen_mex
-    SRC src/eigen.cpp
-    LINK_TO MexUtilities
-    R2018a
-)
+if (USE_EIGEN)
+    matlab_add_mex(
+        NAME eigen_mex
+        SRC src/eigen.cpp
+        LINK_TO MexUtilities
+        R2018a
+    )
+endif()
 
 matlab_add_mex(
     NAME sparse_mex
