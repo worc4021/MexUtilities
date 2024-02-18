@@ -127,6 +127,22 @@ public:
         std::transform(values.cbegin(), values.cend(), valSpan.begin(), [](T elem) { return elem; });
     }
 
+    template<std::integral Index, std::floating_point Number>
+    void getCsr(std::span<Index> columnBounds, std::span<Index> iRow, std::span<Number> val) const {
+        std::vector<Index> columnProxy(n, 0);
+        
+        for (const auto idx : iOffset) {
+            columnProxy.at(idx/m) += 1;
+            iRow[idx] = idx % m;
+            val[idx] = values.at(idx);
+        }
+        std::fill(columnBounds.begin(), columnBounds.end(), 0);
+
+        for (Index i = 0; i < n; i++) {
+            columnBounds[i+1] = columnBounds[i] + columnProxy.at(i);
+        }
+    }
+
     matlab::data::SparseArray<T> get() const
     {
         matlab::data::ArrayFactory factory;
