@@ -82,7 +82,7 @@ public:
             }
             case commands::values: {
                 matlab::data::buffer_ptr_t<double> val_p = factory.createBuffer<double>(A.getNumberOfNonZeroElements());
-                A.val<double>(val_p.get());
+                A.val(val_p.get());
                 if (outputs.size())
                     outputs[0] = factory.createArrayFromBuffer<double>({ A.getNumberOfNonZeroElements(),1 }, std::move(val_p));
                 break;

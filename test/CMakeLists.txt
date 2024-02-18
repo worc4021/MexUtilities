@@ -42,13 +42,10 @@ matlab_add_unit_test(
     ADDITIONAL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/matlab $<TARGET_FILE_DIR:sparse_mex>
 )
 
-enable_testing()
-find_package(GTest CONFIG REQUIRED)
+
 add_executable(standalone_sparse_test standalone/sparse.cpp)
 set_target_properties(standalone_sparse_test 
                         PROPERTIES 
-                        CXX_STANDARD 17 
-                        CXX_STANDARD_REQUIRED ON 
                         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_link_libraries(standalone_sparse_test MexUtilities GTest::gtest_main)
 include(GoogleTest)
