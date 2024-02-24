@@ -79,6 +79,30 @@ public:
             columnBounds[i+1] = columnBounds[i] + columnProxy.at(i);
         }
     }
+    
+    // We implicitly assume that the values in the linear index array are monotonically increasing
+    template<std::integral Index>
+    void getCsr(std::span<Index> rowBounds, std::span<Index> jCol, std::span<Number> val) const {
+        std::vector<Index> rowCount(m, 0);
+        for (std::size_t i = 0; i < iOffset.size(); i++) {
+            Index idx = iOffset.at(i);
+            rowCount.at(idx % m) += 1;
+        }
+
+        std::fill(rowBounds.begin(), rowBounds.end(), 0);
+        for (std::size_t iRow = 0; iRow < m; iRow++) {
+            rowBounds[iRow+1] = rowBounds[iRow] + rowCount.at(iRow);
+        }
+
+        std::fill(rowCount.begin(), rowCount.end(), 0);
+        for (std::size_t i = 0; i < iOffset.size(); i++) {
+            Index idx = iOffset.at(i);
+            Index iRow = idx % m;
+            jCol[rowBounds[iRow] + rowCount[iRow]] = idx / m;
+            val[rowBounds[iRow] + rowCount[iRow]] = values.at(i);
+            rowCount[iRow] += 1;
+        }
+    }
 
     template<std::integral Index>
     void set(std::span<Index> const iRow, std::span<Index> const jCol, std::span<Number> const val) {
