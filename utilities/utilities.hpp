@@ -442,7 +442,7 @@ namespace utilities
         }
     }
 
-    template<std::floating_point T>
+    template<typename T>
     void mapToComplex(const matlab::data::TypedArray<T> &x, matlab::data::TypedArray<std::complex<T>> &y)
     {
         matlab::data::ArrayDimensions dims = x.getDimensions();
@@ -471,7 +471,7 @@ namespace utilities
         }
     }
     
-    template<std::floating_point T>
+    template<typename T>
     matlab::data::TypedArray<std::complex<T>> getascomplex(const matlab::data::Array &x)
     {
         matlab::data::ArrayFactory factory;
