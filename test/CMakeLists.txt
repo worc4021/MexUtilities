@@ -29,6 +29,13 @@ if (USE_EIGEN)
         LINK_TO MexUtilities
         R2018a
     )
+
+    matlab_add_mex(
+        NAME eigen_sparse_mex
+        SRC src/sparse_eigen.cpp
+        LINK_TO MexUtilities
+        R2018a
+    )
 endif()
 
 
