@@ -6,6 +6,7 @@ project(MexUtilties
         DESCRIPTION "Utilities for Matlab mex files"
         LANGUAGES CXX)
 
+include(GNUInstallDirs)
 option(BUILD_TESTS "Build tests" ON)
 option(USE_EIGEN "Provide eigen3 interfaces" ON)
 
@@ -32,13 +33,6 @@ target_link_libraries(MexUtilities INTERFACE ${MexUtililtiesLibraries})
 
 target_compile_features(MexUtilities INTERFACE cxx_std_20)
 
-install(TARGETS MexUtilities EXPORT MexUtilitiesConfig
-    ARCHIVE  DESTINATION lib
-    LIBRARY  DESTINATION lib
-    RUNTIME  DESTINATION bin
-)
-install(DIRECTORY utilities/ DESTINATION include/utilities)
-install(EXPORT MexUtilitiesConfig DESTINATION share/MexUtilities/cmake)
 
 if(BUILD_TESTS)
 include(CTest)
@@ -47,3 +41,15 @@ find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM)
 enable_testing()
 add_subdirectory(test)
 endif()
+
+install(TARGETS MexUtilities 
+    EXPORT MexUtilitiesTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(DIRECTORY utilities/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/utilities)
+install(EXPORT MexUtilitiesTargets
+      FILE MexUtilities.cmake
+      NAMESPACE MexUtilities::
+      DESTINATION cmake)
