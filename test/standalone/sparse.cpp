@@ -20,13 +20,13 @@ void testSparseCSC(void) {
     std::vector<ReturnIndexType> colBnd_ref = {0,1,3,6,9,11};
     std::vector<ReturnIndexType> iRow_ref = {0, 0, 1, 0, 1, 2, 1, 2, 3, 2, 4};
 
-    A.set<MatrixIndexType>(iRow, jCol, values);
+    A.template set<MatrixIndexType>(iRow, jCol, values);
 
     std::vector<ReturnIndexType> colBnd(A.getNumberOfColumns() + 1, 0);
     std::vector<ReturnIndexType> iRow_out(A.getNumberOfNonZeroElements());
     std::vector<FloatType> val_out(A.getNumberOfNonZeroElements());
 
-    A.getCsc<ReturnIndexType>(colBnd, iRow_out, val_out);
+    A.template getCsc<ReturnIndexType>(colBnd, iRow_out, val_out);
 
     for (std::size_t i = 0; i < A.getNumberOfColumns(); i++) {
         EXPECT_EQ(colBnd[i], colBnd_ref[i]);
@@ -58,13 +58,13 @@ void testSparseCSR(void) {
     std::vector<ReturnIndexType> jCol_ref = {0,1,2,1,2,3,2,3,4,3,4};
     std::vector<FloatType> val_ref = {1,-1,-3,5,4,6,-4,2,7,8,-5};
 
-    A.set<MatrixIndexType>(iRow, jCol, values);
+    A.template set<MatrixIndexType>(iRow, jCol, values);
 
     std::vector<ReturnIndexType> rowBnd(A.getNumberOfRows() + 1, 0);
     std::vector<ReturnIndexType> jCol_out(A.getNumberOfNonZeroElements());
     std::vector<FloatType> val_out(A.getNumberOfNonZeroElements());
     
-    A.getCsr<ReturnIndexType>(rowBnd, jCol_out, val_out);    
+    A.template getCsr<ReturnIndexType>(rowBnd, jCol_out, val_out);    
 
     for (std::size_t i = 0; i < A.getNumberOfRows(); i++) {
         EXPECT_EQ(rowBnd[i], rowBnd_ref[i]);
