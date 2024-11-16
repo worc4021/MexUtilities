@@ -22,6 +22,14 @@ matlab_add_mex(
     R2018a
 )
 
+matlab_add_mex(
+    NAME printf_mex
+    SRC src/printf.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+
+
 if (USE_EIGEN)
     matlab_add_mex(
         NAME eigen_mex

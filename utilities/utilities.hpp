@@ -1,5 +1,6 @@
 #pragma once
 #include <fmt/core.h>
+#include <fmt/ranges.h>
 #include "MatlabDataArray.hpp"
 
 std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
