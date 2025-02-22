@@ -1,8 +1,16 @@
 #pragma once
+#include <filesystem>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include "MatlabDataArray.hpp"
 
+#ifndef xstr
+#define xstr(s) mystr(s)
+#endif
+
+#ifndef mystr
+#define mystr(s) #s
+#endif
 std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
 namespace utilities
@@ -513,4 +521,20 @@ namespace utilities
             static_cast<int>(numReturned),
             theArgs);
     }
-} // namespace utilites
+
+#if defined(MATLAB_MEX_FILE) && defined(MEX_OUTPUT_NAME)
+    inline std::filesystem::path getMexPath()
+    {
+        using matlab::engine::convertUTF8StringToUTF16String;
+        matlab::data::ArrayFactory factory;
+        
+        std::string ownName = xstr(MEX_OUTPUT_NAME);
+
+        std::vector<matlab::data::Array> args{factory.createScalar(ownName)};
+        
+        auto retval = feval(factory.createScalar("which"),1, args);
+        std::filesystem::path mexPath = getstringvalue(retval[0]);
+        return mexPath;
+    }
+#endif
+} // namespace utilities

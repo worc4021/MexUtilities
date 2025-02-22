@@ -24,11 +24,18 @@ matlab_add_mex(
 
 matlab_add_mex(
     NAME printf_mex
+    OUTPUT_NAME printf
     SRC src/printf.cpp
     LINK_TO MexUtilities
     R2018a
 )
 
+matlab_add_mex(
+    NAME mex_name
+    SRC src/mexName.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
 
 if (USE_EIGEN)
     matlab_add_mex(
@@ -75,6 +82,6 @@ if (HAVE_CPP20)
     target_link_libraries(standalone_sparse_test MexUtilities GTest::gtest_main)
     
     include(GoogleTest)
-    gtest_discover_tests(standalone_sparse_test)
+    gtest_discover_tests(standalone_sparse_test DISCOVERY_MODE PRE_TEST)
 endif()
 

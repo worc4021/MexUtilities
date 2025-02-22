@@ -33,6 +33,7 @@ target_link_libraries(MexUtilities INTERFACE ${MexUtililtiesLibraries})
 
 target_compile_features(MexUtilities INTERFACE cxx_std_20)
 
+target_compile_definitions(MexUtilities INTERFACE "MEX_OUTPUT_NAME=$<TARGET_PROPERTY:OUTPUT_NAME>")
 
 if(BUILD_TESTS)
 include(CTest)
