@@ -11,7 +11,7 @@ public:
             matlabPtr = getEngine();
     }
     ~MexFunction() = default;
-    void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
+    void operator()(matlab::mex::ArgumentList outputs, [[maybe_unused]]matlab::mex::ArgumentList inputs) {
         
         std::filesystem::path retval = utilities::getMexPath();
 
