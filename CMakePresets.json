@@ -109,8 +109,7 @@
             "displayName": "linux GCC base",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_Fortran_COMPILER": "gfortran"
+                "CMAKE_CXX_COMPILER": "g++"
             },
             "hidden": true
         },
