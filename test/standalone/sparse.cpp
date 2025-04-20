@@ -28,9 +28,9 @@ void testSparseCSC(void) {
 
     A.template getCsc<ReturnIndexType>(colBnd, iRow_out, val_out);
 
-    for (std::size_t i = 0; i < A.getNumberOfColumns(); i++) {
+    for (ReturnIndexType i = 0; i < static_cast<ReturnIndexType>(A.getNumberOfColumns()); ++i) {
         EXPECT_EQ(colBnd[i], colBnd_ref[i]);
-        for (std::size_t j = colBnd[i]; j < colBnd[i+1]; j++) {
+        for (ReturnIndexType j = colBnd[i]; j < colBnd[i+1]; ++j) {
             EXPECT_EQ(iRow_out[j], iRow_ref[j]);
             EXPECT_EQ(val_out[j], values[j]);
         }
@@ -66,9 +66,9 @@ void testSparseCSR(void) {
     
     A.template getCsr<ReturnIndexType>(rowBnd, jCol_out, val_out);    
 
-    for (std::size_t i = 0; i < A.getNumberOfRows(); i++) {
+    for (ReturnIndexType i = 0; i < static_cast<ReturnIndexType>(A.getNumberOfRows()); ++i) {
         EXPECT_EQ(rowBnd[i], rowBnd_ref[i]);
-        for (std::size_t j = rowBnd[i]; j < rowBnd[i+1]; j++) {
+        for (ReturnIndexType j = rowBnd[i]; j < rowBnd[i+1]; ++j) {
             EXPECT_EQ(jCol_out[j], jCol_ref[j]);
             EXPECT_EQ(val_out[j], val_ref[j]);
         }

@@ -75,7 +75,7 @@ public:
         }
         std::fill(columnBounds.begin(), columnBounds.end(), 0);
 
-        for (Index i = 0; i < n; i++) {
+        for (Index i = 0; i < static_cast<Index>(n); i++) {
             columnBounds[i+1] = columnBounds[i] + columnProxy.at(i);
         }
     }

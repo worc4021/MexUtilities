@@ -11,7 +11,7 @@ public:
             matlabPtr = getEngine();
     }
     ~MexFunction() = default;
-    void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
+    void operator()([[maybe_unused]]matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs) {
         if (inputs.size()) {
             if (utilities::isnumeric(inputs[0])) {
                 matlab::data::TypedArray<double> x = std::move(inputs[0]);
