@@ -9,12 +9,10 @@ namespace utilities::eigen {
 template<std::floating_point Number>
 Eigen::SparseMatrix<Number> toEigen(const matlab::data::SparseArray<Number>& A) {
     Eigen::SparseMatrix<Number> retVal(A.getDimensions()[0], A.getDimensions()[1]);
-    std::size_t k = 0;
     matlab::data::SparseIndex idx;
-    for (auto it = A.cbegin(); it != A.cend(); it++) {
+    for (auto it = A.cbegin(); it != A.cend(); ++it) {
         idx = A.getIndex(it);
         retVal.insert(idx.first, idx.second) = *it;
-        k++;
     }
     retVal.makeCompressed();
     return retVal;
