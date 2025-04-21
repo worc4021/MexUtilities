@@ -10,6 +10,9 @@ include(GNUInstallDirs)
 option(BUILD_TESTS "Build tests" ON)
 option(USE_EIGEN "Provide eigen3 interfaces" ON)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 find_package(Matlab REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 
@@ -22,7 +25,7 @@ target_include_directories(MexUtilities INTERFACE
     $<INSTALL_INTERFACE:include/utilities>
 )
 
-set(MexUtililtiesLibraries Matlab::mex fmt::fmt-header-only)
+set(MexUtililtiesLibraries Matlab::mex fmt::fmt)
 if (USE_EIGEN)
     find_package(Eigen3 CONFIG REQUIRED)
     list(APPEND MexUtililtiesLibraries Eigen3::Eigen)

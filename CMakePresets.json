@@ -151,8 +151,7 @@
             "inherits": ["config-base","linux-conifg-base"],
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "icx",
-                "CMAKE_CXX_COMPILER": "icx",
-                "CMAKE_Fortran_COMPILER": "ifx"
+                "CMAKE_CXX_COMPILER": "icpx"
             },
             "hidden": true
         },

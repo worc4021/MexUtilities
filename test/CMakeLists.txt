@@ -76,9 +76,6 @@ if (HAVE_CPP20)
     )
 
     add_executable(standalone_sparse_test standalone/sparse.cpp)
-    set_target_properties(standalone_sparse_test 
-                            PROPERTIES 
-                            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     target_link_libraries(standalone_sparse_test MexUtilities GTest::gtest_main)
     
     include(GoogleTest)
