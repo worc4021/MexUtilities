@@ -3,6 +3,7 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include "MatlabDataArray.hpp"
+#include "cppmex/mexMatlabEngine.hpp"
 
 #ifndef xstr
 #define xstr(s) mystr(s)
@@ -408,7 +409,7 @@ namespace utilities
             }
             case matlab::data::ArrayType::UNKNOWN:
             {
-                throw std::runtime_error("addSingleField: unknown array type");
+                utilities::error("addSingleField: unknown array type");
                 break;
             }
             }
