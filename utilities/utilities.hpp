@@ -13,7 +13,12 @@
 #ifndef mystr
 #define mystr(s) #s
 #endif
+
+#ifndef mex_hpp
+extern std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
+#else
 std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
+#endif
 
 namespace utilities
 {

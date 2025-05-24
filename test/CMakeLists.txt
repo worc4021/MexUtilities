@@ -37,6 +37,15 @@ matlab_add_mex(
     R2018a
 )
 
+matlab_add_mex(
+    NAME multifile
+    SRC src/multifile1.cpp
+        src/multifile2.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+target_include_directories(multifile PRIVATE src)
+
 if (USE_EIGEN)
     matlab_add_mex(
         NAME eigen_mex
