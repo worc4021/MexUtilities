@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILITIES_EIGEN_CONVERSIONS_HPP
+#define UTILITIES_EIGEN_CONVERSIONS_HPP
 #include "MatlabDataArray.hpp"
 #include "utilities.hpp"
 #if defined(USE_EIGEN)
@@ -36,3 +37,4 @@ inline matlab::data::TypedArray<double> convert(const Eigen::MatrixXd& x) {
 } // namespace utilities::eigen
 
 #endif // defined(USE_EIGEN)
+#endif // UTILITIES_EIGEN_CONVERSIONS_HPP

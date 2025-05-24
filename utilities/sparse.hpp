@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILITIES_SPARSE_HPP
+#define UTILITIES_SPARSE_HPP
 #if defined(MATLAB_MEX_FILE)
 #include "utilities.hpp"
 #endif // defined(MATLAB_MEX_FILE)
@@ -212,3 +213,4 @@ public:
 };
 
 } // namespace utilities
+#endif // UTILITIES_SPARSE_HPP

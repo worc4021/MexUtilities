@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MEX_UTILITIES_HPP
+#define MEX_UTILITIES_HPP
 #include <filesystem>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
@@ -539,3 +540,4 @@ namespace utilities
     }
 #endif
 } // namespace utilities
+#endif  // MEX_UTILITIES_HPP

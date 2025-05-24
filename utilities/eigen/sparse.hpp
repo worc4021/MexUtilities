@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILITIES_EIGEN_SPARSE_HPP
+#define UTILITIES_EIGEN_SPARSE_HPP
 #include "MatlabDataArray.hpp"
 #include "utilities.hpp"
 
@@ -38,3 +39,4 @@ matlab::data::SparseArray<Number> toMatlab(const Eigen::SparseMatrix<Number>& A)
 }
 
 } // namespace utilities::eigen
+#endif // UTILITIES_EIGEN_SPARSE_HPP
