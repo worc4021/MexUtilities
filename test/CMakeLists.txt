@@ -46,6 +46,23 @@ matlab_add_mex(
 )
 target_include_directories(multifile PRIVATE src)
 
+matlab_add_mex(
+    NAME page_times
+    SRC src/pagetimes.cpp
+    LINK_TO MexUtilities libmwblas.lib
+    R2018a
+)
+target_link_directories(page_times PRIVATE ${Matlab_ROOT_DIR}/extern/lib/win64/microsoft)
+
+matlab_add_mex(
+    NAME catandpagetimes
+    SRC src/catandpagetimes.cpp
+    LINK_TO MexUtilities libmwblas.lib
+    R2018a
+)
+target_link_directories(catandpagetimes PRIVATE ${Matlab_ROOT_DIR}/extern/lib/win64/microsoft)
+target_compile_features(catandpagetimes PRIVATE cxx_std_23)
+
 if (USE_EIGEN)
     matlab_add_mex(
         NAME eigen_mex
