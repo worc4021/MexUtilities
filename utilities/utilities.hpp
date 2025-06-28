@@ -407,9 +407,21 @@ namespace utilities
                 stmp[0][field] = std::move(tmp);
                 break;
             }
+            case matlab::data::ArrayType::SPARSE_SINGLE:
+            {
+                matlab::data::SparseArray<float> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
             case matlab::data::ArrayType::SPARSE_COMPLEX_DOUBLE:
             {
                 matlab::data::SparseArray<std::complex<double>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+            case matlab::data::ArrayType::SPARSE_COMPLEX_SINGLE:
+            {
+                matlab::data::SparseArray<std::complex<float>> tmp = std::move(str[0][field]);
                 stmp[0][field] = std::move(tmp);
                 break;
             }
