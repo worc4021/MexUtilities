@@ -1,6 +1,6 @@
 # Existing code
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake)
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.25)
 project(MexUtilties
         VERSION 1.0
         DESCRIPTION "Utilities for Matlab mex files"
