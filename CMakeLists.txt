@@ -14,7 +14,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 find_package(Matlab REQUIRED MAT_LIBRARY MAIN_PROGRAM MEX_LIBRARY)
-find_package(fmt CONFIG REQUIRED)
+
+include(FetchContent)
+
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  GIT_TAG        11.2.0)
+FetchContent_MakeAvailable(fmt)
 
 
 add_library(MexUtilities INTERFACE)
