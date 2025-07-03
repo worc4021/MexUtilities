@@ -392,6 +392,28 @@ public:
         }
     } tensorial;
 
+    void transpose() {
+        static_assert(N > 1, "Transpose is only valid for 2D or higher dimensions");
+        if constexpr (N == 2) {
+            std::size_t nRows = _dims.at(0);
+            std::size_t nCols = _dims.at(1);
+            _dims.at(0) = nCols;
+            _dims.at(1) = nRows;
+            for (std::size_t jCol = 0; jCol < nCols; ++jCol) {
+                for (std::size_t iRow = jCol + 1; iRow < nRows; ++iRow) {
+                    std::swap(_data[iRow + jCol * nRows], _data[jCol + iRow * nCols]);
+                }
+            }
+            column.resize(_dims, _data.data());
+            row.resize(_dims, _data.data());
+            page.resize(_dims, _data.data());
+            tensorial.resize(_dims, _data.data());
+        }
+        else if constexpr (N == 3) {
+            // Transpose logic for 3D tensors  
+        }
+    }
+
 };
 
 
