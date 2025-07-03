@@ -1,5 +1,3 @@
-# Existing code
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake)
 cmake_minimum_required(VERSION 3.25)
 project(MexUtilties
         VERSION 1.0
@@ -9,11 +7,14 @@ project(MexUtilties
 include(GNUInstallDirs)
 option(BUILD_TESTS "Build tests" ON)
 option(USE_EIGEN "Provide eigen3 interfaces" ON)
+option(NO_MATLAB "Supress use of mexes etc" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+if(NOT NO_MATLAB)
 find_package(Matlab REQUIRED MAT_LIBRARY MAIN_PROGRAM MEX_LIBRARY)
+endif()
 
 include(FetchContent)
 
@@ -41,12 +42,20 @@ target_sources(MexUtilities PUBLIC
 )
 
 
-set(MexUtilitiesLibraries Matlab::mex fmt::fmt)
+set(MexUtilitiesLibraries fmt::fmt)
+if(NOT NO_MATLAB)
+list(APPEND MexUtiliesLibraries Matlab::mex)
+endif(NOT NO_MATLAB)
 if (USE_EIGEN)
-    find_package(Eigen3 CONFIG REQUIRED)
-    list(APPEND MexUtilitiesLibraries Eigen3::Eigen)
+    FetchContent_Declare(
+        eigen3
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen
+        GIT_TAG 3.4
+    )
+    FetchContent_MakeAvailable(eigen3)
+    list(APPEND MexUtilitiesLibraries eigen3)
     target_compile_definitions(MexUtilities INTERFACE USE_EIGEN)
-endif()
+endif(USE_EIGEN)
 
 target_link_libraries(MexUtilities INTERFACE ${MexUtilitiesLibraries})
 
@@ -56,11 +65,22 @@ target_compile_definitions(MexUtilities INTERFACE "MEX_OUTPUT_NAME=$<TARGET_PROP
 
 if(BUILD_TESTS)
 include(CTest)
-find_package(GTest CONFIG REQUIRED)
+
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest
+  GIT_TAG v1.17.0
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+if(NOT NO_MATLAB)
 find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM)
+endif(NOT NO_MATLAB)
 enable_testing()
 add_subdirectory(test)
-endif()
+endif(BUILD_TESTS)
 
 install(TARGETS MexUtilities 
     EXPORT MexUtilitiesTargets
