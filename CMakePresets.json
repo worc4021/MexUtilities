@@ -296,6 +296,12 @@
             "displayName": "Intel oneAPI Release"
         },
         {
+            "name": "windows-intel-debug-test",
+            "inherits": ["test-base","test-windows"],
+            "configurePreset": "windows-intel-debug-config",
+            "displayName": "Intel oneAPI Debug"
+        },
+        {
             "name": "windows-msvc-release-test",
             "inherits": ["test-base","test-windows"],
             "configurePreset": "windows-msvc-release-config",
