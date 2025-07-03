@@ -8,6 +8,7 @@ int main() {
 }" 
 HAVE_CPP20)
 
+if(NOT NO_MATLAB)
 matlab_add_mex(
     NAME isfield_mex
     SRC src/isfield.cpp
@@ -77,7 +78,7 @@ if (USE_EIGEN)
         LINK_TO MexUtilities
         R2018a
     )
-endif()
+endif(USE_EIGEN)
 
 
 matlab_add_unit_test(
@@ -85,9 +86,12 @@ matlab_add_unit_test(
     UNITTEST_FILE cases.m
     ADDITIONAL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/matlab $<TARGET_FILE_DIR:isfield_mex>
     )
-    
+
+endif(NOT NO_MATLAB)    
     
 if (HAVE_CPP20)
+
+if(NOT NO_MATLAB)
     matlab_add_mex(
         NAME sparse_mex
         SRC src/sparse.cpp
@@ -100,11 +104,16 @@ if (HAVE_CPP20)
         UNITTEST_FILE sparse_test.m
         ADDITIONAL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/matlab $<TARGET_FILE_DIR:sparse_mex>
     )
-
+endif(NOT NO_MATLAB)
     add_executable(standalone_sparse_test standalone/sparse.cpp)
     target_link_libraries(standalone_sparse_test MexUtilities GTest::gtest_main)
     
+    add_executable(standlone_blockdata_test standalone/blockdata.cpp)
+    target_link_libraries(standlone_blockdata_test MexUtilities GTest::gtest_main)
+
     include(GoogleTest)
     gtest_discover_tests(standalone_sparse_test DISCOVERY_MODE PRE_TEST)
-endif()
+    gtest_discover_tests(standlone_blockdata_test DISCOVERY_MODE PRE_TEST)
+        
+endif(HAVE_CPP20)
 
