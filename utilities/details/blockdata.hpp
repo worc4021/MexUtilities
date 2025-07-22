@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <numeric>
 #include <exception>
+#include <ranges>
+#include <functional>
 
 namespace utilities::details {
 
@@ -416,6 +418,134 @@ public:
 
 };
 
+template <std::size_t N, typename T>
+class BlockDataV {
+    static_assert(N > 0 && N < 4, "Invalid number of dimensions.");
+    std::vector<T> _data;
+    std::array<std::size_t, N> _dims;
+    
+    public:
+    BlockDataV() = default;
+    BlockDataV(std::size_t nElements) : _data(nElements), _dims{nElements} {
+        static_assert(N == 1, "Invalid number of dimensions");
+    }
+
+    BlockDataV(std::size_t nRows, std::size_t nCols) : _data(nRows * nCols), _dims{nRows, nCols} {
+        static_assert(N == 2, "Invalid number of dimensions");
+    }
+
+    BlockDataV(std::size_t nRows, std::size_t nCols, std::size_t nPages) : _data(nRows * nCols * nPages), _dims{nRows, nCols, nPages}{
+        static_assert(N == 3, "Invalid number of dimensions");
+    }
+
+    BlockDataV(std::array<std::size_t, N> dims) : _data(std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<std::size_t>())), _dims(dims) {
+        static_assert(N > 0 && N < 4, "Invalid number of dimensions");
+    }
+
+    BlockDataV(const BlockDataV&) = default;
+    BlockDataV(BlockDataV&&) = default;
+    ~BlockDataV() = default;
+#if defined(MATLAB_MEX_FILE)
+    BlockDataV(matlab::data::Array&& A) 
+        : _data(A.getNumberOfElements())
+        , _dims() {
+        matlab::data::TypedArray<T> A_typed(std::move(A));
+        std::copy_n(A_typed.getDimensions().begin(), N, _dims.begin());
+        std::copy(A_typed.begin(), A_typed.end(), _data.begin());
+    }
+#endif // defined(MATLAB_MEX_FILE)
+
+    BlockDataV &resize(std::size_t nElements) {
+        static_assert(N == 1, "Invalid number of dimensions");
+        _data.resize(nElements);
+        _dims.at(0) = nElements;
+        return *this;
+    }
+
+    BlockDataV& resize(std::size_t nRows, std::size_t nCols) {
+        static_assert(N == 2, "Invalid number of dimensions");
+        _data.resize(nRows * nCols);
+        _dims.at(0) = nRows;
+        _dims.at(1) = nCols;
+        return *this;
+    }
+
+    BlockDataV& resize(std::size_t nRows, std::size_t nCols, std::size_t nPages) {
+        static_assert(N == 3, "Invalid number of dimensions");
+        _data.resize(nRows * nCols * nPages);
+        _dims.at(0) = nRows;
+        _dims.at(1) = nCols;
+        _dims.at(2) = nPages;
+        return *this;
+    }
+
+    auto all() {
+        return std::views::all(_data);
+    }
+
+    
+    auto row(std::size_t rowIndex) {
+        static_assert(N >= 2, "Invalid number of dimensions for row access");
+        assert(rowIndex < _dims.at(0) && "Row index out of bounds");
+        return std::views::drop(rowIndex) | std::views::stride(_dims.at(0)) | std::views::take(_dims.at(1));
+    };
+
+    auto page(std::size_t pageIndex) {
+        static_assert(N >= 3, "Invalid number of dimensions for page access");
+        assert(pageIndex < _dims[2] && "Page index out of bounds");
+        return std::views::drop(pageIndex * _dims.at(0) * _dims.at(1)) | std::views::take(_dims.at(0) * _dims.at(1));
+    };
+
+    auto col(std::size_t colIndex) {
+        static_assert(N >= 2, "Invalid number of dimensions for column access");
+        assert(colIndex < _dims.at(1) && "Column index out of bounds");
+        return std::views::drop(colIndex * _dims.at(0)) | std::views::take(_dims.at(0));
+    };
+
+    auto tensorial(std::size_t iRow, std::size_t jCol) {
+        static_assert(N >= 3, "Invalid number of dimensions for tensorial access");
+        assert(iRow < _dims.at(0) && "Row index out of bounds");
+        return std::views::drop(iRow + jCol*_dims.at(0)) | std::views::stride(_dims.at(0)*_dims.at(1)) | std::views::take(_dims.at(2));
+    };
+
+    T &operator()(std::size_t iElement) {
+        static_assert(N == 1, "Invalid number of dimensions");
+        return _data.at(iElement);
+    }
+
+    T &operator()(std::size_t iRow, std::size_t jCol) {
+        static_assert(N == 2, "Invalid number of dimensions");
+        return _data.at(iRow + jCol * _dims[0]);
+    }
+
+    T &operator()(std::size_t iRow, std::size_t jCol, std::size_t kPage) {
+        static_assert(N == 3, "Invalid number of dimensions");
+        return _data.at(iRow + jCol * _dims[0] + kPage * _dims[0] * _dims[1]);
+    }
+
+    const T &operator()(std::size_t iElement) const {
+        return static_cast<const T&>(const_cast<BlockDataV<N,T>*>(this)->operator()(iElement));
+    }
+
+    std::size_t size() const {
+        return _data.size();
+    }
+
+    std::size_t nRows() const {
+        static_assert(N >= 1, "Invalid number of dimensions");
+        return _dims.at(0);
+    }
+
+    std::size_t nCols() const {
+        static_assert(N >= 2, "Invalid number of dimensions");
+        return _dims.at(1);
+    }
+
+    std::size_t nPages() const {
+        static_assert(N > 2, "Invalid number of dimensions");
+        return _dims.at(2);
+    }
+};
 
 } // namespace utilities::details
 #endif // BLOCKDATA_HPP

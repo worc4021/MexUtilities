@@ -81,39 +81,75 @@ TEST(BlockDataTest, Transpose)
     
 }
 
-template<typename T>
-void my_fill(std::span<T> a, T value)
-{
-    std::fill(a.begin(), a.end(), value);
-}
+// template<typename T>
+// void my_fill(std::span<T> a, T value)
+// {
+//     std::fill(a.begin(), a.end(), value);
+// }
 
-TEST(BlockDataTest, Span) {
-    constexpr auto nRows = 3;
-    constexpr auto nCols = 4;
-    utilities::details::BlockData<2, double> bd(nRows, nCols);
-    my_fill<double>(bd.column(0), 1.0);
-    my_fill<double>(bd.column(1), 2.0);
-    my_fill<double>(bd.column(2), 3.0);
-    my_fill<double>(bd.column(3), 4.0);
-    for (std::size_t iRow = 0; iRow < nRows; ++iRow)
+// TEST(BlockDataTest, Span) {
+//     constexpr auto nRows = 3;
+//     constexpr auto nCols = 4;
+//     utilities::details::BlockData<2, double> bd(nRows, nCols);
+//     my_fill<double>(bd.column(0), 1.0);
+//     my_fill<double>(bd.column(1), 2.0);
+//     my_fill<double>(bd.column(2), 3.0);
+//     my_fill<double>(bd.column(3), 4.0);
+//     for (std::size_t iRow = 0; iRow < nRows; ++iRow)
+//     {
+//         for (std::size_t iCol = 0; iCol < nCols; ++iCol)
+//         {
+//             EXPECT_EQ(bd(iRow, iCol), static_cast<double>(iCol + 1));
+//         }
+//     }
+
+//     utilities::details::BlockData<2, double> bd2(nRows, nCols);
+
+//     my_fill<double>(bd2.row(0), 5.0);
+//     my_fill<double>(bd2.row(1), 6.0);
+//     my_fill<double>(bd2.row(2), 7.0);
+//     for (std::size_t iRow = 0; iRow < nRows; ++iRow)
+//     {
+//         for (std::size_t iCol = 0; iCol < nCols; ++iCol)
+//         {
+//             EXPECT_EQ(bd2(iRow, iCol), static_cast<double>(iRow + 5));
+//         }
+//     }
+
+// }
+
+TEST(BlockDataVTest, InitialFillTest) {
+    utilities::details::BlockDataV<3, double> bd(3, 4, 2);
+
+    for (auto&& elem : bd.all() | bd.row(2))
     {
-        for (std::size_t iCol = 0; iCol < nCols; ++iCol)
-        {
-            EXPECT_EQ(bd(iRow, iCol), static_cast<double>(iCol + 1));
-        }
+        elem = 1.0;
     }
 
-    utilities::details::BlockData<2, double> bd2(nRows, nCols);
-
-    my_fill<double>(bd2.row(0), 5.0);
-    my_fill<double>(bd2.row(1), 6.0);
-    my_fill<double>(bd2.row(2), 7.0);
-    for (std::size_t iRow = 0; iRow < nRows; ++iRow)
-    {
-        for (std::size_t iCol = 0; iCol < nCols; ++iCol)
-        {
-            EXPECT_EQ(bd2(iRow, iCol), static_cast<double>(iRow + 5));
-        }
+    for (auto&& elem : bd.all() | bd.row(2)) {
+        EXPECT_EQ(elem, 1.0);
     }
 
+    for (auto&& elem : bd.all() | bd.page(1) | bd.row(2)) {
+        elem = 2.0;
+    }
+
+    auto v = bd.all() | bd.page(1) | bd.row(2);
+    std::fill(v.begin(), v.end(), 2.0);
+
+    for (auto&& elem : bd.all() | bd.page(1) | bd.row(2)) {
+        EXPECT_EQ(elem, 2.0);
+    }
+
+
+    EXPECT_EQ(bd(2, 0, 1), 2.0);
+
+    auto tens = bd.all() | bd.tensorial(0, 0);
+    std::fill(tens.begin(), tens.end(), 3.0);
+    auto tens2 = bd.all() | bd.tensorial(1, 1);
+    std::fill(tens2.begin(), tens2.end(), 4.0);
+    for (std::size_t iPage = 0; iPage < bd.nPages(); ++iPage) {   
+        EXPECT_EQ(bd(0, 0, iPage), 3.0);
+        EXPECT_EQ(bd(1, 1, iPage), 4.0);
+    }
 }

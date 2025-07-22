@@ -64,6 +64,23 @@ matlab_add_mex(
 target_link_directories(catandpagetimes PRIVATE ${Matlab_ROOT_DIR}/extern/lib/win64/microsoft)
 target_compile_features(catandpagetimes PRIVATE cxx_std_23)
 
+matlab_add_mex(
+    NAME ranges
+    SRC src/ranges.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+target_compile_features(ranges PRIVATE cxx_std_23)
+
+matlab_add_mex(
+    NAME catandpagetimesRanges
+    SRC src/catandpagetimesranges.cpp
+    LINK_TO MexUtilities libmwblas.lib
+    R2018a
+)
+target_link_directories(catandpagetimesRanges PRIVATE ${Matlab_ROOT_DIR}/extern/lib/win64/microsoft)
+target_compile_features(catandpagetimesRanges PRIVATE cxx_std_23)
+
 if (USE_EIGEN)
     matlab_add_mex(
         NAME eigen_mex
@@ -110,6 +127,11 @@ endif(NOT NO_MATLAB)
     
     add_executable(standlone_blockdata_test standalone/blockdata.cpp)
     target_link_libraries(standlone_blockdata_test MexUtilities GTest::gtest_main)
+    target_compile_features(standlone_blockdata_test PRIVATE cxx_std_23)
+
+    add_executable(standalone_views_test standalone/views.cpp)
+    target_link_libraries(standalone_views_test fmt::fmt)
+    target_compile_features(standalone_views_test PRIVATE cxx_std_23)
 
     include(GoogleTest)
     gtest_discover_tests(standalone_sparse_test DISCOVERY_MODE PRE_TEST)

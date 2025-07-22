@@ -3,29 +3,12 @@
 #include "details/blockdata.hpp"
 #include "utilities.hpp"
 #include "blas.h"
-#include <span>
+#include <numeric>
+#include <ranges>
+#include <algorithm>
+#include <array>
+#include <cassert>
 
-
-// Strided output iterator adapter for column-major row
-template<typename T>
-class strided_row_iterator {
-    T* base;
-    std::size_t stride;
-    std::size_t index;
-public:
-    using iterator_category = std::output_iterator_tag;
-    using value_type = T;
-    using difference_type = std::ptrdiff_t;
-    using pointer = T*;
-    using reference = T&;
-
-    strided_row_iterator(T* base, std::size_t stride, std::size_t index=0)
-        : base(base), stride(stride), index(index) {}
-
-    strided_row_iterator& operator++() { ++index; return *this; }
-    strided_row_iterator operator++(int) { auto tmp = *this; ++*this; return tmp; }
-    T& operator*() { return base[index * stride]; }
-};
 
 struct InputHelper {
     matlab::data::ArrayFactory factory;
@@ -77,10 +60,10 @@ struct OutputHelper {
 struct ChainRule {
     std::size_t nInputs{2};
     std::size_t nOutputs{2};
-    utilities::details::BlockData<2, double> inputs_x;
-    utilities::details::BlockData<3, double> inputs_J;
-    utilities::details::BlockData<2, double> outputs_x;
-    utilities::details::BlockData<3, double> outputs_J;
+    utilities::details::BlockDataV<2, double> inputs_x;
+    utilities::details::BlockDataV<3, double> inputs_J;
+    utilities::details::BlockDataV<2, double> outputs_x;
+    utilities::details::BlockDataV<3, double> outputs_J;
 
     InputHelper inputHelper;
     OutputHelper outputHelper;
@@ -103,25 +86,35 @@ struct ChainRule {
         auto dims = x.getDimensions();
         if (x.getType() == matlab::data::ArrayType::DOUBLE) {
             matlab::data::TypedArray<double> xref = std::move(x);
-            if (dims[1] == 1) {
-                for (std::size_t iDim = 0; iDim < dims[0]; ++iDim) {
-                    std::fill(inputs_x.row(inputIndex).begin(), inputs_x.row(inputIndex).end(), xref[iDim]);
-                }                
-            } else {
-                utilities::details::BlockData<2, double> input_bd(std::move(x));
-                for (std::size_t iDim = 0; iDim < dims[0]; ++iDim) {
-                    std::copy(input_bd.row(iDim).begin(), input_bd.row(iDim).end(), inputs_x.row(inputIndex+iDim).begin());
-                }
+            auto targetRow = inputs_x.all() | inputs_x.row(inputIndex);
+            if (dims[0] > 1)
+                utilities::error("Only scalar inputs supported");
+            if (dims[1] == 1) 
+                std::ranges::fill(std::ranges::begin(targetRow), std::ranges::end(targetRow), xref[0]);
+            else {
+                std::copy(xref.begin(), xref.end(), std::ranges::begin(targetRow));
             }
+                
+            
         } else if (x.getType() == matlab::data::ArrayType::COMPLEX_DOUBLE) {
-            utilities::details::BlockData<3, std::complex<double>> input_bd(std::move(x));
+            utilities::details::BlockDataV<3, std::complex<double>> input_bd(std::move(x));
             std::size_t nDir = dims.size() > 2 ? dims[2] : 1;
-            for (std::size_t iRow = 0; iRow < dims[0]; ++iRow) {
-                std::transform(input_bd.row(iRow).begin(), input_bd.row(iRow).end(), inputs_x.row(inputIndex + iRow).begin(), [](const std::complex<double>& val) { return val.real(); });
-                for (std::size_t iDir = 0; iDir < nDir; ++iDir) {
-                    std::transform(input_bd.page(iDir).row(iRow).begin(), input_bd.page(iDir).row(iRow).end(), inputs_J.tensorial(inputIndex + iRow, iDir).begin(), [](const std::complex<double>& val) { return val.imag() * 1e100; });
-                }
+            auto inputRow = input_bd.all() | input_bd.row(0);
+            auto targetRow = inputs_x.all() | inputs_x.row(inputIndex);
+            std::transform( std::ranges::begin(inputRow), 
+                            std::ranges::end(inputRow), 
+                            std::ranges::begin(targetRow),
+                            [](const std::complex<double>& val) { return val.real(); });
+            
+            for (std::size_t iDir = 0; iDir < nDir; ++iDir) {
+                auto inputRow = input_bd.all() | input_bd.page(iDir) | input_bd.row(0);
+                auto targetRowJ = inputs_J.all() | inputs_J.tensorial(inputIndex, iDir);
+                std::transform( std::ranges::begin(inputRow), 
+                                std::ranges::end(inputRow), 
+                                std::ranges::begin(targetRowJ), 
+                                [](const std::complex<double>& val) { return val.imag() * 1e100; });
             }
+            
         } else {
             utilities::error("Unsupported data type for input {}. Expected double or single.", inputIndex + 1);
         }
@@ -154,11 +147,15 @@ struct ChainRule {
         double alpha = 1.0;
         double beta = 0.0;
         
+        auto activeInputPage = inputs_J.all() | inputs_J.page(iPoint);
+        auto activeOutputPage = outputs_J.all() | outputs_J.page(iPoint);
+        
         dgemm(&transa, &transb, &m, &n, &k, &alpha, 
-                J.data(), &lda, inputs_J.page(iPoint).data(), &ldb, &beta,
-                outputs_J.page(iPoint).data(), &lda);
+                J.data(), &lda, std::ranges::data(activeInputPage), &ldb, &beta,
+                std::ranges::data(activeOutputPage), &lda);
 
-        std::copy_n(y.begin(), nOutputs, outputs_x.column(iPoint).begin());
+        auto outputCol = outputs_x.all() | outputs_x.col(iPoint);
+        std::copy_n(y.begin(), nOutputs, std::ranges::begin(outputCol));
         
     }
 
@@ -168,11 +165,18 @@ struct ChainRule {
         std::size_t nDirections = getNumberOfDirections();
         
         matlab::data::buffer_ptr_t<std::complex<double>> retval = f.createBuffer<std::complex<double>>(getNumberOfPoints() * getNumberOfDirections());
+        std::span<std::complex<double>> retval_span(retval.get(), nPoints * nDirections);
+        auto outputRow = outputs_x.all() | outputs_x.row(idx);
         for (std::size_t iDirection = 0; iDirection < nDirections; ++iDirection) {
-            std::transform(outputs_x.row(idx).begin(), outputs_x.row(idx).end(), outputs_J.tensorial(idx, iDirection).begin(), retval.get() + iDirection * nPoints, 
-            [](const double& val, const double& j_val) {
-                    return std::complex<double>(val, j_val * 1e-100);
-                });
+            auto outputJac = outputs_J.all() | outputs_J.tensorial(idx, iDirection);
+            auto targetRow = retval_span | std::views::drop(iDirection * nPoints) | std::views::take(nPoints);
+            std::transform( std::ranges::begin(outputRow), 
+                            std::ranges::end(outputRow), 
+                            std::ranges::begin(outputJac), 
+                            std::ranges::begin(targetRow), 
+                            [](const double& val, const double& j_val) {
+                                return std::complex<double>(val, j_val * 1e-100);
+                            });
 		}
 		return f.createArrayFromBuffer<std::complex<double>>({ 1, nPoints, nDirections }, std::move(retval));
     }
@@ -223,10 +227,6 @@ public:
                  iPoint);
          }
 
-        // chainRule.singleModelCallMockup(
-        //      chainRule.inputs_x.column(0),
-        //      chainRule.inputs_J.page(0),
-        //      0);
 
          outputs[0] = chainRule.getNested();
     }
