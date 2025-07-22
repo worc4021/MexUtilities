@@ -407,6 +407,7 @@ namespace utilities
                 stmp[0][field] = std::move(tmp);
                 break;
             }
+#ifndef REDUCED_TYPES            
             case matlab::data::ArrayType::SPARSE_SINGLE:
             {
                 matlab::data::SparseArray<float> tmp = std::move(str[0][field]);
@@ -425,6 +426,7 @@ namespace utilities
                 stmp[0][field] = std::move(tmp);
                 break;
             }
+#endif // REDUCED_TYPES
             case matlab::data::ArrayType::UNKNOWN:
             {
                 utilities::error("addSingleField: unknown array type");
