@@ -15,9 +15,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 if(NOT NO_MATLAB)
 find_package(Matlab REQUIRED MAT_LIBRARY MAIN_PROGRAM MEX_LIBRARY)
 string(REGEX REPLACE "([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)" "\\1" MATLAB_YEAR "${Matlab_VERSION}")
-if (MATLAB_YEAR LESS 25)
-set(REDUCED_TYPES ON)
-endif()
     
 endif()
 
@@ -66,7 +63,9 @@ target_link_libraries(MexUtilities INTERFACE ${MexUtilitiesLibraries})
 
 target_compile_features(MexUtilities INTERFACE cxx_std_20)
 
-target_compile_definitions(MexUtilities INTERFACE "MEX_OUTPUT_NAME=$<TARGET_PROPERTY:OUTPUT_NAME>" "$<$<BOOL:REDUCED_TYPES>:REDUCED_TYPES>")
+if (MATLAB_YEAR LESS 25)
+target_compile_definitions(MexUtilities INTERFACE REDUCED_TYPES)
+endif()
 
 if(BUILD_TESTS)
 include(CTest)

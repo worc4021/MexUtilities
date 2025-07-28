@@ -6,14 +6,6 @@
 #include "MatlabDataArray.hpp"
 #include "cppmex/mexMatlabEngine.hpp"
 
-#ifndef xstr
-#define xstr(s) mystr(s)
-#endif
-
-#ifndef mystr
-#define mystr(s) #s
-#endif
-
 #ifndef mex_hpp
 extern std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 #else
@@ -543,20 +535,20 @@ namespace utilities
             theArgs);
     }
 
-#if defined(MATLAB_MEX_FILE) && defined(MEX_OUTPUT_NAME)
+#if defined(MATLAB_MEX_FILE)
     inline std::filesystem::path getMexPath()
     {
         using matlab::engine::convertUTF8StringToUTF16String;
         matlab::data::ArrayFactory factory;
         
-        std::string ownName = xstr(MEX_OUTPUT_NAME);
-
-        std::vector<matlab::data::Array> args{factory.createScalar(ownName)};
+        std::string arg = "fullpath";
         
-        auto retval = feval(factory.createScalar("which"),1, args);
+        std::vector<matlab::data::Array> args{factory.createScalar(arg)};
+        auto retval = feval(factory.createScalar("mfilename"),1, args);
         std::filesystem::path mexPath = getstringvalue(retval[0]);
         return mexPath;
     }
 #endif
+
 } // namespace utilities
 #endif  // MEX_UTILITIES_HPP
