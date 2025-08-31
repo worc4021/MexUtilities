@@ -198,6 +198,33 @@ namespace utilities
         return str;
     }
 
+// This function appears to have all sorts of issues but it functions correctly when tested, hence we mute the issues.
+#if defined(__clang__)
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wreturn-type"
+#   pragma clang diagnostic ignored "-Wreturn-stack-address"
+#elif defined(_MSC_VER)
+#   pragma warning (push)
+#   pragma warning (disable: 4172)
+#   pragma warning (disable: 4715)
+#endif
+    inline matlab::data::Array &&movefield(matlab::data::StructArray &str, const std::string &fieldname, std::size_t idx = 0) {
+        auto fieldnames = str.getFieldNames();
+        if (std::find(fieldnames.begin(), fieldnames.end(), fieldname) != fieldnames.end())
+        {
+            return std::move(str[idx][fieldname]);
+        }
+        else
+        {
+            utilities::error("movefield: {} not found.", fieldname);
+        }
+    }
+#if defined(__clang__)
+#   pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+#   pragma warning (pop)
+#endif
+
     inline void addSingleField(matlab::data::Array &s, std::string fieldname, const matlab::data::Array value)
     {
         matlab::data::ArrayFactory factory;

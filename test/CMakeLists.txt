@@ -39,6 +39,20 @@ matlab_add_mex(
 )
 
 matlab_add_mex(
+    NAME string_example
+    SRC src/stringexample.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+
+matlab_add_mex(
+    NAME movefield
+    SRC src/movefield.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+
+matlab_add_mex(
     NAME multifile
     SRC src/multifile1.cpp
         src/multifile2.cpp
