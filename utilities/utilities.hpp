@@ -198,6 +198,94 @@ namespace utilities
         return str;
     }
 
+    static matlab::data::ArrayRef get_nested_field(matlab::data::StructArray& str, const std::string_view field) {
+        auto count_occurances = [](const std::string_view str, char ch) {
+            std::size_t count = 0;
+            for (auto c : str) {
+                if (c == ch) {
+                    ++count;
+                }
+            }
+            return count;
+        };
+        
+        const auto nLevels = count_occurances(field, '.') + 1;
+        
+        std::size_t idx = 0;
+        std::size_t offset{0};
+        std::size_t parent_idx{0};
+        if (1 == nLevels) {
+            auto fieldname = field;
+            if (std::string_view::npos != fieldname.find_first_of('[')) {
+                idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
+                fieldname = fieldname.substr(0, fieldname.find_first_of('['));
+            }
+            auto fieldnames = str.getFieldNames();
+            if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
+            {
+                utilities::error("get_nested: invalid field name {}", fieldname);
+            }
+            return str[parent_idx][std::string(fieldname)];
+        } else {
+            auto fieldname = field.substr(0, field.find_first_of('.'));
+            offset = fieldname.length() + 1;
+            if (std::string_view::npos != fieldname.find_first_of('[')) {
+                idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
+                fieldname = fieldname.substr(0, fieldname.find_first_of('['));
+            }
+            auto fieldnames = str.getFieldNames();
+            if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
+            {
+                utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
+            }
+            if (parent_idx > str.getNumberOfElements())
+            {
+                utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
+            }
+            matlab::data::StructArrayRef recursiveField = str[parent_idx][std::string(fieldname)];
+            parent_idx = idx;
+            
+            for (std::size_t i = 1; i < nLevels - 1; ++i) {
+                fieldname = field.substr(offset, field.find_first_of('.', offset) - offset);
+                offset += fieldname.length() + 1;
+                idx = 0;
+                if (std::string_view::npos != fieldname.find_first_of('[')) {
+                    idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
+                    fieldname = fieldname.substr(0, fieldname.find_first_of('['));
+                }
+                auto fieldnames = recursiveField.getFieldNames();
+                if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
+                {
+                    utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
+                }
+                if (parent_idx > recursiveField.getNumberOfElements())
+                {
+                    utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
+                }
+                recursiveField = static_cast<matlab::data::StructArrayRef>(recursiveField[parent_idx][std::string(fieldname)]);
+                parent_idx = idx;
+            }
+            
+            fieldname = field.substr(offset, field.find_first_of('.', offset) - offset);
+            idx = 0;
+            if (std::string_view::npos != fieldname.find_first_of('[')) {
+                idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
+                fieldname = fieldname.substr(0, fieldname.find_first_of('['));
+            }
+            fieldnames = recursiveField.getFieldNames();
+            if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
+            {
+                utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
+            }
+            if (parent_idx > recursiveField.getNumberOfElements())
+            {
+                utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
+            }
+            return recursiveField[parent_idx][std::string(fieldname)];
+        }
+        
+    }
+
 // This function appears to have all sorts of issues but it functions correctly when tested, hence we mute the issues.
 #if defined(__clang__)
 #   pragma clang diagnostic push
