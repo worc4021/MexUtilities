@@ -208,7 +208,7 @@ namespace utilities
             }
             return count;
         };
-        
+
         const auto nLevels = count_occurances(field, '.') + 1;
         
         std::size_t idx = 0;
@@ -262,7 +262,11 @@ namespace utilities
                 {
                     utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
                 }
+#if defined(__clang__)
                 recursiveField = static_cast<matlab::data::StructArrayRef>(recursiveField[parent_idx][std::string(fieldname)]);
+#else
+                recursiveField.operator=((matlab::data::StructArrayRef &)recursiveField[parent_idx][std::string(fieldname)]);
+#endif
                 parent_idx = idx;
             }
             
