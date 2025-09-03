@@ -458,6 +458,19 @@ class BlockDataV {
         std::copy_n(A_typed.getDimensions().begin(), n, _dims.begin());
         std::copy(A_typed.begin(), A_typed.end(), _data.begin());
     }
+
+    BlockDataV(matlab::data::ArrayRef A) 
+        : _data(A.getNumberOfElements())
+        , _dims() {
+        matlab::data::TypedArrayRef<T> A_typed = A;
+        auto n = A_typed.getDimensions().size();
+        if (n > N) {
+            throw std::invalid_argument("Array has more dimensions than supported by BlockDataV");
+        }
+        std::fill(_dims.begin(), _dims.end(), 1); // Initialize all dimensions to 1
+        std::copy_n(A_typed.getDimensions().begin(), n, _dims.begin());
+        std::copy(A_typed.begin(), A_typed.end(), _data.begin());
+    }
 #endif // defined(MATLAB_MEX_FILE)
 
     BlockDataV &resize(std::size_t nElements) {
