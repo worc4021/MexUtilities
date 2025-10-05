@@ -13,7 +13,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if(NOT NO_MATLAB)
-find_package(Matlab REQUIRED MAT_LIBRARY MAIN_PROGRAM MEX_LIBRARY)
+set(MATLAB_ADDITIONAL_VERSION "R2024b=24.2")
+find_package(Matlab REQUIRED)
 string(REGEX REPLACE "([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)" "\\1" MATLAB_YEAR "${Matlab_VERSION}")
     
 endif()
