@@ -38,7 +38,7 @@ target_sources(MexUtilities PUBLIC
     FILES
         utilities/utilities.hpp
         utilities/sparse.hpp
-        utilities/details/BlockData.hpp
+        utilities/details/blockdata.hpp
         utilities/eigen/conversions.hpp
         utilities/eigen/sparse.hpp
 )
