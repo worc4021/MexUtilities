@@ -13,21 +13,26 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if(NOT NO_MATLAB)
-set(MATLAB_ADDITIONAL_VERSION "R2024b=24.2")
-if(NOT DEFINED Matlab_FOUND)
-find_package(Matlab REQUIRED)
-endif()
-string(REGEX REPLACE "([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)" "\\1" MATLAB_YEAR "${Matlab_VERSION}")
-message(STATUS "Found Matlab version ${Matlab_VERSION}, year ${MATLAB_YEAR}")
+set(MATLAB_ADDITIONAL_VERSION 
+    "R2024b=24.2"
+    "R2025a=25.1"
+    "R2025b=25.2"
+)
+    if(NOT DEFINED Matlab_FOUND)
+    find_package(Matlab REQUIRED)
+    endif()
+matlab_get_release_name_from_version("${Matlab_VERSION}" Matlab_RELEASE_NAME)
+string(REGEX REPLACE "R([0-9]+)[ab]" "\\1" MATLAB_YEAR "${Matlab_RELEASE_NAME}")
+message(STATUS "Found Matlab version ${Matlab_RELEASE_NAME}, year ${MATLAB_YEAR}")
 endif()
 
 include(FetchContent)
 
 FetchContent_Declare(
-  fmt
+  fmtlib
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   GIT_TAG        12.1.0)
-FetchContent_MakeAvailable(fmt)
+FetchContent_MakeAvailable(fmtlib)
 
 
 add_library(MexUtilities INTERFACE)
@@ -89,7 +94,7 @@ enable_testing()
 add_subdirectory(test)
 endif(BUILD_TESTS)
 
-install(TARGETS MexUtilities 
+install(TARGETS MexUtilities fmt
     EXPORT MexUtilitiesTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
