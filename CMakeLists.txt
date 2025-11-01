@@ -73,6 +73,7 @@ target_compile_features(MexUtilities INTERFACE cxx_std_20)
 
 if (MATLAB_YEAR LESS 25)
 target_compile_definitions(MexUtilities INTERFACE REDUCED_TYPES)
+message(STATUS "Using REDUCED_TYPES for Matlab versions before 25")
 endif()
 
 if(BUILD_TESTS)
