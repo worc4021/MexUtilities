@@ -71,9 +71,9 @@ target_link_libraries(MexUtilities INTERFACE ${MexUtilitiesLibraries})
 
 target_compile_features(MexUtilities INTERFACE cxx_std_20)
 
-if (MATLAB_YEAR LESS 25)
+if (MATLAB_YEAR LESS 2025)
 target_compile_definitions(MexUtilities INTERFACE REDUCED_TYPES)
-message(STATUS "Using REDUCED_TYPES for Matlab versions before 25")
+message(STATUS "Using REDUCED_TYPES for Matlab versions before 2025")
 endif()
 
 if(BUILD_TESTS)
