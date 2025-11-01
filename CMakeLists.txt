@@ -14,9 +14,11 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if(NOT NO_MATLAB)
 set(MATLAB_ADDITIONAL_VERSION "R2024b=24.2")
+if(NOT DEFINED Matlab_FOUND)
 find_package(Matlab REQUIRED)
+endif()
 string(REGEX REPLACE "([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)" "\\1" MATLAB_YEAR "${Matlab_VERSION}")
-    
+message(STATUS "Found Matlab version ${Matlab_VERSION}, year ${MATLAB_YEAR}")
 endif()
 
 include(FetchContent)
@@ -24,7 +26,7 @@ include(FetchContent)
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
-  GIT_TAG        11.2.0)
+  GIT_TAG        12.1.0)
 FetchContent_MakeAvailable(fmt)
 
 
