@@ -176,82 +176,92 @@ enable_testing()
 add_subdirectory(test)
 endif(BUILD_TESTS)
 
-# Install MexUtilities and its dependencies
-# Only install fmt if we fetched it AND we're either top-level or explicitly requested
-if((CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR OR MEXUTILITIES_INSTALL_DEPS) AND TARGET fmt::fmt)
-    # Check if fmt was created by us (FetchContent) vs found externally
-    get_target_property(FMT_SOURCE_DIR fmt::fmt SOURCE_DIR)
-    get_target_property(FMT_BINARY_DIR fmt::fmt BINARY_DIR)
+# Only install when MexUtilities is the top-level project or installation is explicitly requested
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR OR MEXUTILITIES_INSTALL_DEPS)
+    message(STATUS "MexUtilities: Installing targets and exports")
+else()
+    message(STATUS "MexUtilities: Skipping install targets (used via FetchContent)")
     
-    # Only install if fmt was fetched (has SOURCE_DIR and BINARY_DIR from FetchContent)
-    if(FMT_SOURCE_DIR AND FMT_BINARY_DIR AND EXISTS "${FMT_SOURCE_DIR}/CMakeLists.txt")
-        # Check if fmt target is installable (not an imported target)
-        get_target_property(FMT_IMPORTED fmt::fmt IMPORTED)
-        if(NOT FMT_IMPORTED)
-            install(TARGETS fmt::fmt
-                EXPORT MexUtilitiesTargets
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            )
+    # Install fmt if we fetched it
+    if(TARGET fmt::fmt)
+        # Check if fmt was created by us (FetchContent) vs found externally
+        get_target_property(FMT_SOURCE_DIR fmt::fmt SOURCE_DIR)
+        get_target_property(FMT_BINARY_DIR fmt::fmt BINARY_DIR)
+        
+        # Only install if fmt was fetched (has SOURCE_DIR and BINARY_DIR from FetchContent)
+        if(FMT_SOURCE_DIR AND FMT_BINARY_DIR AND EXISTS "${FMT_SOURCE_DIR}/CMakeLists.txt")
+            # Check if fmt target is installable (not an imported target)
+            get_target_property(FMT_IMPORTED fmt::fmt IMPORTED)
+            if(NOT FMT_IMPORTED)
+                install(TARGETS fmt::fmt
+                    EXPORT MexUtilitiesTargets
+                    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+                )
+            endif()
         endif()
     endif()
-endif()
 
-if(USE_EIGEN AND TARGET Eigen3::Eigen)
-    # Check if Eigen3 was fetched by us
-    get_target_property(EIGEN_SOURCE_DIR Eigen3::Eigen SOURCE_DIR)
-    get_target_property(EIGEN_IMPORTED Eigen3::Eigen IMPORTED)
-    
-    if(EIGEN_SOURCE_DIR AND NOT EIGEN_IMPORTED AND (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR OR MEXUTILITIES_INSTALL_DEPS))
-        # Only install eigen if it was fetched and is installable
-        if(TARGET eigen)
-            install(TARGETS eigen
-                EXPORT MexUtilitiesTargets
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            )
+    # Install Eigen3 if we fetched it
+    if(USE_EIGEN AND TARGET Eigen3::Eigen)
+        # Check if Eigen3 was fetched by us
+        get_target_property(EIGEN_SOURCE_DIR Eigen3::Eigen SOURCE_DIR)
+        get_target_property(EIGEN_IMPORTED Eigen3::Eigen IMPORTED)
+        
+        if(EIGEN_SOURCE_DIR AND NOT EIGEN_IMPORTED)
+            # Only install eigen if it was fetched and is installable
+            if(TARGET eigen)
+                install(TARGETS eigen
+                    EXPORT MexUtilitiesTargets
+                    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+                )
+            endif()
         endif()
     endif()
+
+    # Install MexUtilities
+    install(TARGETS MexUtilities
+        EXPORT MexUtilitiesTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        FILE_SET headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/utilities
+    )
+
+    # Install the export set
+    install(EXPORT MexUtilitiesTargets
+          FILE MexUtilitiesTargets.cmake
+          NAMESPACE MexUtilities::
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MexUtilities)
+          
+    # Create and install package configuration files
+    include(CMakePackageConfigHelpers)
+
+    # Create MexUtilitiesConfig.cmake
+    configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MexUtilitiesConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfig.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MexUtilities
+        PATH_VARS CMAKE_INSTALL_INCLUDEDIR
+    )
+
+    # Create MexUtilitiesConfigVersion.cmake
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+    )
+
+    # Install the config files
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MexUtilities
+    )
+    
 endif()
-
-install(TARGETS MexUtilities
-    EXPORT MexUtilitiesTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    FILE_SET headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/utilities
-)
-
-install(EXPORT MexUtilitiesTargets
-      FILE MexUtilitiesTargets.cmake
-      NAMESPACE MexUtilities::
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MexUtilities)
-
-# Create and install package configuration files
-include(CMakePackageConfigHelpers)
-
-# Create MexUtilitiesConfig.cmake
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MexUtilitiesConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfig.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MexUtilities
-    PATH_VARS CMAKE_INSTALL_INCLUDEDIR
-)
-
-# Create MexUtilitiesConfigVersion.cmake
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfigVersion.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
-
-# Install the config files
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/MexUtilitiesConfigVersion.cmake"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MexUtilities
-)
