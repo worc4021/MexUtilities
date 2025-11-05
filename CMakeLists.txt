@@ -193,13 +193,18 @@ else()
             # Check if fmt target is installable (not an imported target)
             get_target_property(FMT_IMPORTED fmt::fmt IMPORTED)
             if(NOT FMT_IMPORTED)
-                install(TARGETS fmt::fmt
-                    EXPORT MexUtilitiesTargets
-                    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-                )
+                # Use the actual fmt target, not the alias
+                if(TARGET fmt)
+                    install(TARGETS fmt
+                        EXPORT MexUtilitiesTargets
+                        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+                    )
+                else()
+                    message(WARNING "fmt::fmt alias exists but fmt target not found for installation")
+                endif()
             endif()
         endif()
     endif()
