@@ -70,7 +70,7 @@ else()
             FetchContent_Declare(
                 fmtlib
                 GIT_REPOSITORY https://github.com/fmtlib/fmt
-                GIT_TAG        12.1.0
+                GIT_TAG        11.2.0
             )
             
             # Only set FMT_INSTALL if we're the top-level project or explicitly requested
