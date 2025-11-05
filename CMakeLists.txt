@@ -178,9 +178,6 @@ endif(BUILD_TESTS)
 
 # Only install when MexUtilities is the top-level project or installation is explicitly requested
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR OR MEXUTILITIES_INSTALL_DEPS)
-    message(STATUS "MexUtilities: Installing targets and exports")
-else()
-    message(STATUS "MexUtilities: Skipping install targets (used via FetchContent)")
     
     # Install fmt if we fetched it
     if(TARGET fmt::fmt)
