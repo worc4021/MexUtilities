@@ -32,6 +32,14 @@ matlab_add_mex(
 )
 
 matlab_add_mex(
+    NAME warnanderror_mex
+    OUTPUT_NAME warnanderror
+    SRC src/warningsanderror.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+
+matlab_add_mex(
     NAME mex_name
     SRC src/mexName.cpp
     LINK_TO MexUtilities

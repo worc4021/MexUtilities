@@ -110,7 +110,7 @@ target_sources(MexUtilities PUBLIC
         utilities/eigen/conversions.hpp
         utilities/eigen/sparse.hpp
 )
-
+target_compile_definitions(MexUtilities INTERFACE TOOLNAME="$<UPPER_CASE:$<TARGET_PROPERTY:OUTPUT_NAME>>")
 
 set(MexUtilitiesLibraries fmt::fmt)
 if(NOT NO_MATLAB)
