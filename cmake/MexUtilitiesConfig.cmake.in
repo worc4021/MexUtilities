@@ -1,0 +1,41 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Define minimum required versions
+set(_mexutilities_min_fmt_version "@MEXUTILITIES_MIN_FMT_VERSION@")
+
+# Find required dependencies - check if fmt target already exists first
+if(NOT TARGET fmt::fmt)
+    # Try to find fmt with minimum version requirement
+    find_dependency(fmt ${_mexutilities_min_fmt_version})
+else()
+    # fmt::fmt target exists, verify it meets our minimum requirements if possible
+    get_target_property(_fmt_version fmt::fmt VERSION)
+    if(_fmt_version AND _fmt_version VERSION_LESS ${_mexutilities_min_fmt_version})
+        message(WARNING "Found fmt version ${_fmt_version} but MexUtilities requires >= ${_mexutilities_min_fmt_version}")
+    endif()
+endif()
+
+# Handle Eigen3 if USE_EIGEN was enabled during build
+if(@USE_EIGEN@)
+    if(NOT TARGET Eigen3::Eigen)
+        find_dependency(Eigen3)
+    endif()
+endif()
+
+# Handle Matlab if NO_MATLAB was not set during build
+if(NOT @NO_MATLAB@)
+    if(NOT TARGET Matlab::mex)
+        find_package(Matlab QUIET)
+        if(NOT Matlab_FOUND)
+            message(WARNING "Matlab not found. MexUtilities was built with Matlab support but Matlab is not available.")
+        endif()
+    endif()
+endif()
+
+# Include the targets file
+include("${CMAKE_CURRENT_LIST_DIR}/MexUtilitiesTargets.cmake")
+
+# Verify that all expected targets were imported
+check_required_components(MexUtilities)

@@ -131,25 +131,38 @@ namespace utilities
     }
 
     template <typename... _Args>
-    void error(fmt::format_string<_Args...> __fmt, _Args &&...__args)
+    void errWithId(const std::string& errorMnemonic, fmt::format_string<_Args...> __fmt, _Args &&...__args)
     {
+        std::string errorId = fmt::format("{}:{}", TOOLNAME, errorMnemonic);
         std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
         matlab::data::ArrayFactory factory;
         matlabPtr->feval(
             matlab::engine::convertUTF8StringToUTF16String("error"),
             0,
-            std::vector<matlab::data::Array>({factory.createScalar(message)}));
+            std::vector<matlab::data::Array>({factory.createScalar(errorId), factory.createScalar(message)}));
     }
 
     template <typename... _Args>
-    void warning(fmt::format_string<_Args...> __fmt, _Args &&...__args)
+    void error(fmt::format_string<_Args...> __fmt, _Args &&...__args)
+    {
+        errWithId("unspecific", __fmt, std::forward<_Args>(__args)...);
+    }
+
+    template <typename... _Args>
+    void warnWithId(const std::string& warningMnemonic, fmt::format_string<_Args...> __fmt, _Args &&...__args)
     {
         std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
+        std::string warningId = fmt::format("{}:{}", TOOLNAME, warningMnemonic);
         matlab::data::ArrayFactory factory;
         matlabPtr->feval(
             matlab::engine::convertUTF8StringToUTF16String("warning"),
             0,
-            std::vector<matlab::data::Array>({ factory.createScalar(message) }));
+            std::vector<matlab::data::Array>({ factory.createScalar(warningId), factory.createScalar(message) }));
+    }
+
+    template <typename... _Args>
+    void warning(fmt::format_string<_Args...> __fmt, _Args &&...__args) {
+        warnWithId("unspecific", __fmt, std::forward<_Args>(__args)...);
     }
 
     template <typename... _Args>
@@ -524,16 +537,16 @@ namespace utilities
                 stmp[0][field] = std::move(tmp);
                 break;
             }
-#ifndef REDUCED_TYPES            
-            case matlab::data::ArrayType::SPARSE_SINGLE:
-            {
-                matlab::data::SparseArray<float> tmp = std::move(str[0][field]);
-                stmp[0][field] = std::move(tmp);
-                break;
-            }
             case matlab::data::ArrayType::SPARSE_COMPLEX_DOUBLE:
             {
                 matlab::data::SparseArray<std::complex<double>> tmp = std::move(str[0][field]);
+                stmp[0][field] = std::move(tmp);
+                break;
+            }
+#ifndef REDUCED_TYPES
+            case matlab::data::ArrayType::SPARSE_SINGLE:
+            {
+                matlab::data::SparseArray<float> tmp = std::move(str[0][field]);
                 stmp[0][field] = std::move(tmp);
                 break;
             }
