@@ -79,6 +79,8 @@ jobs:
         shell: bash
     steps:
     - uses: actions/checkout@v3
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
     - name: Setup Ninja
       uses: seanmiddleditch/gha-setup-ninja@master
     - name: Setup cmake
