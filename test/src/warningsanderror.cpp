@@ -18,6 +18,10 @@ public:
                 utilities::warning("This is an unspecific warning message");
             } else if ("wspec" == cmd) {
                 utilities::warnWithId("specific", "This is a specific warning message");
+            } else if ("err" == cmd) {
+                utilities::error("This is an unspecific error message");
+            } else if ("espec" == cmd) {
+                utilities::errWithId("specific", "This is a specific error message");
             } else {
                 utilities::printf("Pass one of the following commands as input: warn, wspec, err, espec\n");
             }

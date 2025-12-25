@@ -23,6 +23,6 @@ public:
         = factory.createArray<matlab::data::MATLABString>({2,1});
         std::transform(inputStrings.begin(), inputStrings.end(), inputArray.begin(),
             [](const std::u16string& str) { return str; });
-        inputs[0] = std::move(inputArray);
+        outputs[1] = std::move(inputArray);
     }
 };

@@ -179,7 +179,7 @@ namespace utilities
     inline matlab::data::Array getfield(const matlab::data::Array &s, std::string fieldname)
     {
         if (matlab::data::ArrayType::STRUCT != s.getType())
-            utilities::error("getfield: input must be a struct");
+            utilities::errWithId("getfield","input must be a struct");
 
         matlab::data::StructArray str(s);
         auto fieldnames = str.getFieldNames();
@@ -192,7 +192,7 @@ namespace utilities
             }
             else
             {
-                utilities::error("getfield: {} not found.", fieldname);
+                utilities::errWithId("getfield","field {} not found.", fieldname);
             }
         }
         else
@@ -205,7 +205,7 @@ namespace utilities
             }
             else
             {
-                utilities::error("getfield: {} not found.", fieldname);
+                utilities::errWithId("getfield","field {} not found.", fieldname);
             }
         }
         return str;
