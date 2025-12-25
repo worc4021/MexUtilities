@@ -61,7 +61,7 @@ classdef cases < baseTest
             testCase.verifyWarningFree(@()string_example,'Failed to do some STL string transformations');
         end
 
-        function moveField(testCase)
+        function multifile(testCase)
             testCase.verifyWarningFree(@()multifile(1,2),'Failed running multifile mex')
         end
 
