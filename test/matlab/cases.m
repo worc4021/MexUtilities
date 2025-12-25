@@ -62,7 +62,12 @@ classdef cases < baseTest
         end
 
         function multifile(testCase)
-            testCase.verifyWarningFree(@()multifile(1,2),'Failed running multifile mex')
+            if ispc
+                testCase.verifyWarningFree(@()multifile(1,2),'Failed running multifile mex')
+            else
+                testCase.verifyWarningFree(@()multifile(3,2),'No Printout should mean no error')
+                testCase.verifyError(@()multifile(1,2),'MATLAB:mex:ErrInvalidMEXFile','Known issue that engine not available in non-mex files')
+            end
         end
 
         function pagetimes(testCase)
