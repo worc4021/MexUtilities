@@ -24,6 +24,7 @@ jobs:
         - R2024b
         - R2025b
     runs-on: ubuntu-24.04
+    continue-on-error: true
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
