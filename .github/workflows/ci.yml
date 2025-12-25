@@ -40,7 +40,7 @@ jobs:
         release: ${{ matrix.matlabrelease }}
     - name: Fix matlab internals
       run: |
-        for f in "$(dirname $(dirname $(realpath $(which matlab))))/sys/os/glnxa64/libstdc++.*"; do
+        for f in $(dirname $(dirname $(realpath $(which matlab))))/sys/os/glnxa64/libstdc++.*; do
           echo "Removing $f"
           rm -fv "$f"
         done
