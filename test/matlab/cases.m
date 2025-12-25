@@ -1,18 +1,28 @@
 classdef cases < matlab.unittest.TestCase
-    
-    properties 
-        bindir (1,1) string = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))),'build','test')
-    end
-
+   
     methods(TestClassSetup)
         
-        function classSetup1(testCase)
+        function setPathUp(testCase)
+            repoPath = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            availablePaths = dir(fullfile(repoPath,'out','build','*','CMakeCache.txt'));
+            if isscalar(availablePaths)
+                bindir = fullfile(availablePaths.folder,'test');
+            else
+                dates = datetime(arrayfun(@(x)x.date,availablePaths,'UniformOutput',false));
+                [~,i] = sort(dates,1,"descend");
+                bindir = fullfile(availablePaths(i(1)).folder,'test');
+            end
+            
             % Set up shared state for all tests. 
-            addpath(testCase.bindir);
+            addpath(bindir);
+            testCase.addTeardown(@()rmpath(bindir))
+            
             % Tear down with testCase.addTeardown.
         end
         % Shared setup for the entire test class
         
+
+
     end
     
     methods(TestMethodSetup)
@@ -30,6 +40,12 @@ classdef cases < matlab.unittest.TestCase
                     isfield(tests{i,1},tests{i,2}),...
                     isfield_mex(tests{i,1},tests{i,2}));
             end
+        end
+
+        function mexNameTest(testCase)
+            ref = string(strrep(which('mex_name'),['.',mexext()],''));
+            testPath = mex_name();
+            testCase.verifyEqual(testPath,ref, 'Mex could not determine its own name successfully');
         end
 
         % function structFields(testCase)
