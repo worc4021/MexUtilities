@@ -63,3 +63,47 @@ jobs:
       if: success() || failure()
       with:
         report_paths: ${{ github.workspace }}/test-results.xml
+
+  windows-build:
+    strategy:
+      matrix:
+        matlabrelease:
+        - R2022b
+        - R2023b
+        - R2024b
+        - R2025b
+    runs-on: windows-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: 'latest'
+    - name: Set up MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: ${{ matrix.matlabrelease }}
+    - name: Configure
+      run: |
+        cmake --preset windows-msvc-release-config
+      working-directory: ${{ github.workspace }}
+    - name: Build
+      run: |
+        cmake --build --preset windows-msvc-release-build --target all
+      working-directory: ${{ github.workspace }}
+    - name: Run tests
+      uses: matlab-actions/run-tests@v2
+      with:
+        source-folder: ${{ github.workspace }}/test/matlab
+        test-results-junit: ${{ github.workspace }}/test-results.xml
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v5
+      if: success() || failure()
+      with:
+        report_paths: ${{ github.workspace }}/test-results.xml
