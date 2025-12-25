@@ -38,6 +38,9 @@ jobs:
       uses: matlab-actions/setup-matlab@v2
       with:
         release: ${{ matrix.matlabrelease }}
+    - name: Fix matlab internals
+      run: |
+        rm -f "$(dirname $(dirname $(realpath $(which matlab))))/sys/os/glnxa64/libstdc++.*"
     - name: Configure
       run: |
         cmake --preset linux-gcc-release-config -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DNO_MATLAB=OFF
