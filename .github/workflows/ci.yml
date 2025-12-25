@@ -39,7 +39,7 @@ jobs:
         release: ${{ matrix.matlabrelease }}
     - name: Configure
       run: |
-        cmake --preset linux-gcc-release-config
+        cmake --preset linux-gcc-release-config -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14
       working-directory: ${{ github.workspace }}
     - name: Build
       run: |
