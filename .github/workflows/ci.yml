@@ -40,7 +40,10 @@ jobs:
         release: ${{ matrix.matlabrelease }}
     - name: Fix matlab internals
       run: |
-        rm -fv "$(dirname $(dirname $(realpath $(which matlab))))/sys/os/glnxa64/libstdc++.*"
+        for f in "$(dirname $(dirname $(realpath $(which matlab))))/sys/os/glnxa64/libstdc++.*"; do
+          echo "Removing $f"
+          rm -fv "$f"
+        done
         ls -lAh "$(dirname $(dirname $(realpath $(which matlab))))/sys/os/glnxa64/"
     - name: Configure
       run: |
