@@ -34,7 +34,7 @@
             }
         },
         {
-            "name": "linux-conifg-base",
+            "name": "linux-config-base",
             "hidden": true,
             "condition": {
                 "type": "equals",
@@ -116,7 +116,7 @@
         {
             "name": "linux-gcc-release-config",
             "displayName": "linux GCC Release",
-            "inherits": ["linux-gcc-base","linux-conifg-base"],
+            "inherits": ["linux-gcc-base","linux-config-base"],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
@@ -124,7 +124,7 @@
         {
             "name": "linux-gcc-debug-config",
             "displayName": "linux GCC Debug",
-            "inherits": ["linux-gcc-base","linux-conifg-base"],
+            "inherits": ["linux-gcc-base","linux-config-base"],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
@@ -148,7 +148,7 @@
         {
             "name": "linux-intel-base",
             "displayName": "linux Intel oneAPI base",
-            "inherits": ["config-base","linux-conifg-base"],
+            "inherits": ["config-base","linux-config-base"],
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "icx",
                 "CMAKE_CXX_COMPILER": "icpx"

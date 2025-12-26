@@ -1,4 +1,4 @@
-classdef sparse_test < matlab.unittest.TestCase
+classdef sparse_test < baseTest
     
     properties (TestParameter)
         dimensions = {5,50,500,50000}
