@@ -122,23 +122,18 @@ if(USE_EIGEN)
         message(STATUS "Eigen3::Eigen target already exists, using existing version")
         set(Eigen3_FOUND TRUE)
     else()
-        find_package(Eigen3 QUIET)
-        if(NOT Eigen3_FOUND)
-            message(STATUS "Eigen3 not found, fetching from source")
-            FetchContent_Declare(
-                eigen3
-                GIT_REPOSITORY https://gitlab.com/libeigen/eigen
-                GIT_TAG 3.4
-            )
-            FetchContent_MakeAvailable(eigen3)
-            # After FetchContent, the target should be available
-            if(TARGET Eigen3::Eigen)
-                set(Eigen3_FOUND TRUE)
-            else()
-                message(FATAL_ERROR "Failed to make Eigen3::Eigen target available")
-            endif()
+        message(STATUS "Eigen3 not found, fetching from source")
+        FetchContent_Declare(
+            eigen3
+            GIT_REPOSITORY https://gitlab.com/libeigen/eigen
+            GIT_TAG 5.0.0
+        )
+        FetchContent_MakeAvailable(eigen3)
+        # After FetchContent, the target should be available
+        if(TARGET Eigen3::Eigen)
+            set(Eigen3_FOUND TRUE)
         else()
-            message(STATUS "Found system Eigen3")
+            message(FATAL_ERROR "Failed to make Eigen3::Eigen target available")
         endif()
     endif()
     
@@ -156,24 +151,27 @@ if(NOT NO_MATLAB AND DEFINED MATLAB_YEAR AND MATLAB_YEAR LESS 2025)
 endif()
 
 if(BUILD_TESTS)
-include(CTest)
-find_package(GTest QUIET)
-if (NOT GTest_FOUND)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest
-  GIT_TAG v1.17.0
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-endif()
-
+    include(CTest)
+    find_package(GTest QUIET)
+    if (NOT GTest_FOUND)
+        if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+            message(STATUS "Intel Googletest workaround applied")  
+            add_compile_options(-Wno-character-conversion)
+        endif()
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest
+            GIT_TAG v1.17.0
+        )
+        # For Windows: Prevent overriding the parent project's compiler/linker settings
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(googletest)
+    endif()
 if(NOT NO_MATLAB)
 find_package(Matlab REQUIRED COMPONENTS MAIN_PROGRAM)
 endif(NOT NO_MATLAB)
-enable_testing()
-add_subdirectory(test)
+    enable_testing()
+    add_subdirectory(test)
 endif(BUILD_TESTS)
 
 # Only install when MexUtilities is the top-level project or installation is explicitly requested
