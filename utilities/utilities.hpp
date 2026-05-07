@@ -137,7 +137,7 @@ namespace utilities
         std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
         matlab::data::ArrayFactory factory;
         matlabPtr->feval(
-            matlab::engine::convertUTF8StringToUTF16String("error"),
+            std::string("error"),
             0,
             std::vector<matlab::data::Array>({factory.createScalar(errorId), factory.createScalar(message)}));
     }
@@ -155,7 +155,7 @@ namespace utilities
         std::string warningId = fmt::format("{}:{}", TOOLNAME, warningMnemonic);
         matlab::data::ArrayFactory factory;
         matlabPtr->feval(
-            matlab::engine::convertUTF8StringToUTF16String("warning"),
+            std::string("warning"),
             0,
             std::vector<matlab::data::Array>({ factory.createScalar(warningId), factory.createScalar(message) }));
     }
@@ -171,7 +171,7 @@ namespace utilities
         std::string message = fmt::format(__fmt, std::forward<_Args>(__args)...);
         matlab::data::ArrayFactory factory;
         matlabPtr->feval(
-            matlab::engine::convertUTF8StringToUTF16String("fprintf"),
+            std::string("fprintf"),
             0,
             std::vector<matlab::data::Array>({factory.createScalar(message)}));
     }
@@ -668,7 +668,7 @@ namespace utilities
         std::vector<matlab::data::Array> theArgs({handle});
         theArgs.insert(theArgs.end(), arguments.begin(), arguments.end());
         return matlabPtr->feval(
-            matlab::engine::convertUTF8StringToUTF16String("feval"),
+            std::string("feval"),
             static_cast<int>(numReturned),
             theArgs);
     }
@@ -676,7 +676,6 @@ namespace utilities
 #if defined(MATLAB_MEX_FILE)
     inline std::filesystem::path getMexPath()
     {
-        using matlab::engine::convertUTF8StringToUTF16String;
         matlab::data::ArrayFactory factory;
         
         std::string arg = "fullpath";

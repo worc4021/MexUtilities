@@ -112,6 +112,26 @@ target_sources(MexUtilities PUBLIC
 )
 target_compile_definitions(MexUtilities INTERFACE TOOLNAME="$<UPPER_CASE:$<TARGET_PROPERTY:OUTPUT_NAME>>")
 
+# blockdata.hpp uses C++ exceptions to validate constructor arguments
+# (``throw std::invalid_argument`` / ``throw std::out_of_range``).  On
+# Windows the MSVC-style toolchains -- cl, clang-cl, icx-cl -- default
+# to "no exception handling" and a TU that instantiates a throwing
+# template diagnoses with::
+#
+#     error: cannot use 'throw' with exceptions disabled
+#
+# Normally CMake's MSVC platform module injects ``/EHsc`` into
+# ``CMAKE_CXX_FLAGS_INIT`` so every consumer gets it for free, but
+# that only fires on a *first* cache initialisation and is silently
+# lost if the cache ever ends up populated with an empty
+# ``CMAKE_CXX_FLAGS`` (e.g. a broken initial configure).  Make
+# ``/EHsc`` a property of the INTERFACE target so every consumer
+# linking against ``MexUtilities::MexUtilities`` gets it transitively
+# regardless of how their cache was seeded.
+if(WIN32 AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    target_compile_options(MexUtilities INTERFACE /EHsc)
+endif()
+
 set(MexUtilitiesLibraries fmt::fmt)
 if(NOT NO_MATLAB)
 list(APPEND MexUtilitiesLibraries Matlab::mex)
