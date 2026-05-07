@@ -4,13 +4,33 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include "MatlabDataArray.hpp"
-#include "cppmex/mexMatlabEngine.hpp"
+// ``mex.hpp`` (rather than just ``cppmex/mexMatlabEngine.hpp``) so that on
+// matlab releases that ship the ``mex_common_adapter.hpp`` umbrella (R2025b
+// onwards), the *inline* bodies of the cppmex ``MATLABEngine::feval``
+// overloads -- defined in ``cppmex/detail/mexApiAdapterImpl.hpp`` and pulled
+// in transitively from ``mex_common_adapter.hpp`` -- are reachable in every
+// TU that consumes ``utilities.hpp``.  Without this, helper TUs of
+// multi-file mexes (e.g. ``multifile1.cpp``, which only includes
+// ``utilities.hpp``) would leave the R2025b inline ``feval`` ODR-used but
+// unreachable, which mingw GCC and ``icx-cl`` surface as an ``undefined
+// reference to MATLABEngine::feval(std::string const&, int, ...)`` link
+// error.  ``mex.hpp`` does *not* include ``mexFunctionAdapterImpl.hpp``
+// (that lives in ``mexAdapter.hpp``), so this is safe to include from every
+// helper TU without duplicating the MEX entry-point definitions.
+//
+// On older matlab releases (e.g. R2022b) ``mex.hpp`` has no umbrella header
+// and only the declarations are pulled in -- but that is harmless because
+// the cppmex ``MATLABEngine::feval`` overloads on those releases are
+// *non-inline* and produce a real exported symbol from the one TU that
+// includes ``mexAdapter.hpp`` (the MEX entry-point TU), which the linker
+// uses to satisfy the helper-TU references.
+#include "mex.hpp"
 
-#ifndef mex_hpp
-extern std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
-#else
-std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
-#endif
+// matlabPtr is an ``inline`` variable so it has the same identity across every
+// TU that includes ``utilities.hpp`` while still being defined exactly once at
+// link time.  This replaces the previous ``#ifndef mex_hpp`` extern/definition
+// split, which only worked when ``mex.hpp`` was included by exactly one TU.
+inline std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr;
 
 namespace utilities
 {
