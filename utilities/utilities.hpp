@@ -264,6 +264,18 @@ namespace utilities
             offset = fieldname.length() + 1;
             if (std::string_view::npos != fieldname.find_first_of('[')) {
                 idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
+                // The intermediate-levels loop and the final block already
+                // honour ``fortranIndex`` here; the first level was missing
+                // the adjustment, which silently shifted every top-level
+                // array index up by one.  For ``beam[9].x`` (Modelica
+                // 1-based) on a 9-element StructArray the un-adjusted idx
+                // tripped the final-block bounds check with a noisy
+                // "index 9 out of bounds on field x while processing
+                // beam[9].x".  Less obvious failure mode for smaller
+                // indices: silently fetching the next element over.
+                if (fortranIndex) {
+                    idx -= 1;
+                }
                 fieldname = fieldname.substr(0, fieldname.find_first_of('['));
             }
             auto fieldnames = str.getFieldNames();
@@ -271,7 +283,7 @@ namespace utilities
             {
                 utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
             }
-            if (parent_idx > str.getNumberOfElements())
+            if (parent_idx >= str.getNumberOfElements())
             {
                 utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
             }
