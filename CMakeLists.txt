@@ -132,6 +132,26 @@ if(WIN32 AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     target_compile_options(MexUtilities INTERFACE /EHsc)
 endif()
 
+# GCC 16's libstdc++ tightened transitive includes: standard headers no
+# longer silently drag in <cstdint>.  MATLAB's own MatlabDataArray headers
+# (e.g. GetArrayType.hpp) use int8_t / uint8_t / ... *without* including
+# <cstdint>, so every TU that pulls in mex.hpp / MatlabDataArray.hpp now
+# fails under gcc-16 with "'int8_t' was not declared in this scope".  We
+# cannot patch the installed MATLAB headers, and we cannot rely on one of
+# our own headers being included first -- the standard MEX pattern includes
+# mex.hpp + mexAdapter.hpp ahead of utilities.hpp (see test/src/mexName.cpp),
+# so a source-level #include lands too late.  Force-include <cstdint> ahead
+# of every TU that consumes MexUtilities so the fixed-width integer types
+# are in scope before any MATLAB header is processed.  Scoped to GNU-style
+# frontends (gcc, clang); the MSVC-style toolchains (cl, clang-cl, icx-cl)
+# use the MSVC STL and are unaffected.  Guarded by COMPILE_LANGUAGE:CXX so it
+# is not forced onto the C TU (c_mexapi_version.c) that matlab_add_mex pulls
+# into every mex -- <cstdint> is a C++-only header.  The SHELL: prefix keeps
+# "-include cstdint" as two separate arguments.
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    target_compile_options(MexUtilities INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include cstdint>")
+endif()
+
 set(MexUtilitiesLibraries fmt::fmt)
 if(NOT NO_MATLAB)
 list(APPEND MexUtilitiesLibraries Matlab::mex)

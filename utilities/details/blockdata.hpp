@@ -397,22 +397,32 @@ public:
     void transpose() {
         static_assert(N > 1, "Transpose is only valid for 2D or higher dimensions");
         if constexpr (N == 2) {
-            std::size_t nRows = _dims.at(0);
-            std::size_t nCols = _dims.at(1);
-            _dims.at(0) = nCols;
-            _dims.at(1) = nRows;
+            const std::size_t nRows = _dims.at(0);
+            const std::size_t nCols = _dims.at(1);
+            // The previous in-place pairwise swap only works for square
+            // matrices: for a non-square matrix the source/destination linear
+            // indices (column-major) do not pair up once the row stride
+            // changes, so elements were overwritten and the result was wrong.
+            // Transpose out-of-place into a fresh buffer, which is correct for
+            // both square and non-square shapes.  Old element (iRow, jCol) at
+            // iRow + jCol*nRows maps to new element (jCol, iRow) at
+            // jCol + iRow*nCols (nCols is the row stride of the transpose).
+            std::vector<T> transposed(_data.size());
             for (std::size_t jCol = 0; jCol < nCols; ++jCol) {
-                for (std::size_t iRow = jCol + 1; iRow < nRows; ++iRow) {
-                    std::swap(_data[iRow + jCol * nRows], _data[jCol + iRow * nCols]);
+                for (std::size_t iRow = 0; iRow < nRows; ++iRow) {
+                    transposed[jCol + iRow * nCols] = _data[iRow + jCol * nRows];
                 }
             }
+            _data = std::move(transposed);
+            _dims.at(0) = nCols;
+            _dims.at(1) = nRows;
             column.resize(_dims, _data.data());
             row.resize(_dims, _data.data());
             page.resize(_dims, _data.data());
             tensorial.resize(_dims, _data.data());
         }
         else if constexpr (N == 3) {
-            // Transpose logic for 3D tensors  
+            // Transpose logic for 3D tensors
         }
     }
 
