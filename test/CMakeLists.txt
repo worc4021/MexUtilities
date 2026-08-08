@@ -66,6 +66,13 @@ matlab_add_mex(
 target_compile_features(movefield PRIVATE cxx_std_23)
 
 matlab_add_mex(
+    NAME getnested
+    SRC src/getnested.cpp
+    LINK_TO MexUtilities
+    R2018a
+)
+
+matlab_add_mex(
     NAME multifile
     SRC src/multifile1.cpp
         src/multifile2.cpp
