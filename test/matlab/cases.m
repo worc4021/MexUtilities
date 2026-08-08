@@ -162,12 +162,15 @@ classdef cases < baseTest
         end
 
         function multifile(testCase)
-            if ispc
-                testCase.verifyWarningFree(@()multifile(1,2),'Failed running multifile mex')
-            else
-                testCase.verifyWarningFree(@()multifile(3,2),'No Printout should mean no error')
-                testCase.verifyError(@()multifile(1,2),'MATLAB:mex:ErrInvalidMEXFile','Known issue that engine not available in non-mex files')
-            end
+            % multifile1.cpp is a helper TU that only includes utilities.hpp,
+            % and reaches the engine through matlabPtr when its first argument
+            % is 1.  That used to fail to resolve on linux -- the test asserted
+            % MATLAB:mex:ErrInvalidMEXFile as a known issue -- until the mex
+            % header inclusions were reworked in 96a79b7.  Since then it works
+            % on every platform, but the linux expectation was never updated
+            % and has been failing (masked on main by continue-on-error).
+            testCase.verifyWarningFree(@()multifile(3,2),'No printout should mean no error')
+            testCase.verifyWarningFree(@()multifile(1,2),'Failed running multifile mex')
         end
 
         function pagetimes(testCase)
