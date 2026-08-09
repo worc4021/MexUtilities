@@ -1,6 +1,14 @@
 #ifndef MEX_UTILITIES_HPP
 #define MEX_UTILITIES_HPP
+#include <algorithm>
+#include <charconv>
 #include <filesystem>
+#include <functional>
+#include <iterator>
+#include <numeric>
+#include <optional>
+#include <string_view>
+#include <vector>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include "MatlabDataArray.hpp"
@@ -231,114 +239,284 @@ namespace utilities
         return str;
     }
 
-    static matlab::data::ArrayRef get_nested_field(matlab::data::StructArray& str, const std::string_view field, bool fortranIndex = false) {
-        auto count_occurances = [](const std::string_view str, char ch) {
-            std::size_t count = 0;
-            for (auto c : str) {
-                if (c == ch) {
-                    ++count;
-                }
-            }
-            return count;
+    namespace details
+    {
+        // One ``name[i,j,...]`` segment of a nested field specification.
+        struct field_segment
+        {
+            std::string_view name;
+            std::vector<std::size_t> subscripts;
         };
 
-        const auto nLevels = count_occurances(field, '.') + 1;
-        
-        std::size_t idx = 0;
-        std::size_t offset{0};
-        std::size_t parent_idx{0};
-        if (1 == nLevels) {
-            auto fieldname = field;
-            if (std::string_view::npos != fieldname.find_first_of('[')) {
-                idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
-                fieldname = fieldname.substr(0, fieldname.find_first_of('['));
-            }
-            auto fieldnames = str.getFieldNames();
-            if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
-            {
-                utilities::error("get_nested: invalid field name {}", fieldname);
-            }
-            return str[parent_idx][std::string(fieldname)];
-        } else {
-            auto fieldname = field.substr(0, field.find_first_of('.'));
-            offset = fieldname.length() + 1;
-            if (std::string_view::npos != fieldname.find_first_of('[')) {
-                idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
-                // The intermediate-levels loop and the final block already
-                // honour ``fortranIndex`` here; the first level was missing
-                // the adjustment, which silently shifted every top-level
-                // array index up by one.  For ``beam[9].x`` (Modelica
-                // 1-based) on a 9-element StructArray the un-adjusted idx
-                // tripped the final-block bounds check with a noisy
-                // "index 9 out of bounds on field x while processing
-                // beam[9].x".  Less obvious failure mode for smaller
-                // indices: silently fetching the next element over.
-                if (fortranIndex) {
-                    idx -= 1;
-                }
-                fieldname = fieldname.substr(0, fieldname.find_first_of('['));
-            }
-            auto fieldnames = str.getFieldNames();
-            if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
-            {
-                utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
-            }
-            if (parent_idx >= str.getNumberOfElements())
-            {
-                utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
-            }
-            matlab::data::StructArrayRef recursiveField = str[parent_idx][std::string(fieldname)];
-            parent_idx = idx;
-            
-            for (std::size_t i = 1; i < nLevels - 1; ++i) {
-                fieldname = field.substr(offset, field.find_first_of('.', offset) - offset);
-                offset += fieldname.length() + 1;
-                idx = 0;
-                if (std::string_view::npos != fieldname.find_first_of('[')) {
-                    idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
-                    if (fortranIndex) {
-                        idx -= 1;
-                    }
-                    fieldname = fieldname.substr(0, fieldname.find_first_of('['));
-                }
-                auto fieldnames = recursiveField.getFieldNames();
-                if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
-                {
-                    utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
-                }
-                if (parent_idx >= recursiveField.getNumberOfElements())
-                {
-                    utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
-                }
-#if defined(__clang__) || defined(__GNUC__)
-                recursiveField = static_cast<matlab::data::StructArrayRef>(recursiveField[parent_idx][std::string(fieldname)]);
-#else
-                recursiveField.operator=((matlab::data::StructArrayRef &)recursiveField[parent_idx][std::string(fieldname)]);
-#endif
-                parent_idx = idx;
-            }
-            
-            fieldname = field.substr(offset, field.find_first_of('.', offset) - offset);
-            idx = 0;
-            if (std::string_view::npos != fieldname.find_first_of('[')) {
-                idx = static_cast<std::size_t>(std::stoul(std::string(fieldname.substr(fieldname.find_first_of('[') + 1, fieldname.find_first_of(']') - fieldname.find_first_of('[') - 1))));
-                if (fortranIndex) {
-                    idx -= 1;
-                }
-                fieldname = fieldname.substr(0, fieldname.find_first_of('['));
-            }
-            fieldnames = recursiveField.getFieldNames();
-            if (std::find(fieldnames.begin(), fieldnames.end(), std::string(fieldname)) == fieldnames.end())
-            {
-                utilities::error("get_nested: invalid field name {} on total field {}", fieldname, field);
-            }
-            if (parent_idx >= recursiveField.getNumberOfElements())
-            {
-                utilities::error("get_nested: index {} out of bounds on field {} while processing {}", parent_idx, fieldname, field);
-            }
-            return recursiveField[parent_idx][std::string(fieldname)];
+        inline std::string_view trim(const std::string_view text)
+        {
+            const auto first = text.find_first_not_of(" \t");
+            if (std::string_view::npos == first)
+                return std::string_view{};
+            return text.substr(first, text.find_last_not_of(" \t") - first + 1);
         }
-        
+
+        inline field_segment parse_field_segment(const std::string_view segment, const std::string_view field)
+        {
+            field_segment parsed{segment, {}};
+
+            const auto open = segment.find_first_of('[');
+            if (std::string_view::npos == open)
+                return parsed;
+
+            const auto close = segment.find_first_of(']', open);
+            if (std::string_view::npos == close)
+            {
+                utilities::error("get_nested: unterminated subscript in {} while processing {}", segment, field);
+                return parsed;
+            }
+
+            parsed.name = segment.substr(0, open);
+            auto subscripts = segment.substr(open + 1, close - open - 1);
+            while (true)
+            {
+                const auto comma = subscripts.find_first_of(',');
+                const auto token = details::trim(subscripts.substr(0, comma));
+                // ``from_chars`` rather than ``stoul``: ``stoul("1,1")`` happily
+                // returns 1 and drops everything from the comma on, which is how
+                // matrix subscripts used to be silently truncated to their first
+                // dimension.
+                std::size_t value{0};
+                const auto result = std::from_chars(token.data(), token.data() + token.size(), value);
+                if (std::errc() != result.ec || result.ptr != token.data() + token.size())
+                {
+                    utilities::error("get_nested: {} is not a valid subscript in {} while processing {}", token, segment, field);
+                    return parsed;
+                }
+                parsed.subscripts.push_back(value);
+                if (std::string_view::npos == comma)
+                    break;
+                subscripts.remove_prefix(comma + 1);
+            }
+            return parsed;
+        }
+
+        // Column major (matlab native) linear index of the element addressed by
+        // ``subscripts`` in an array of shape ``dims``.
+        inline std::size_t to_linear_index(const matlab::data::ArrayDimensions &dims,
+                                           const std::vector<std::size_t> &subscripts,
+                                           const bool fortranIndex,
+                                           const std::string_view name,
+                                           const std::string_view field)
+        {
+            auto zero_based = [&](const std::size_t position) {
+                const auto value = subscripts[position];
+                if (fortranIndex)
+                {
+                    if (0 == value)
+                        utilities::error("get_nested: subscript {} of {} is 0 but one based indexing was requested while processing {}", position + 1, name, field);
+                    return value - 1;
+                }
+                return value;
+            };
+
+            if (subscripts.empty())
+                return 0;
+
+            // A lone subscript keeps its historic meaning -- a linear index into
+            // the whole struct array -- whatever the shape of that array is.
+            if (1 == subscripts.size())
+            {
+                const auto nElements = std::accumulate(dims.begin(), dims.end(), std::size_t{1}, std::multiplies<std::size_t>());
+                const auto index = zero_based(0);
+                if (index >= nElements)
+                    utilities::error("get_nested: index {} out of bounds on field {} of size {} while processing {}", index, name, dims, field);
+                return index;
+            }
+
+            // Matlab drops trailing singleton dimensions, so a modelica
+            // ``x[i,j,1]`` addressing a matlab ``i x j`` array is legitimate:
+            // pad the shape rather than rejecting the extra subscripts.
+            if (subscripts.size() < dims.size())
+            {
+                utilities::error("get_nested: {} subscripts given for field {} of size {} while processing {}", subscripts.size(), name, dims, field);
+                return 0;
+            }
+
+            std::size_t linear{0};
+            std::size_t stride{1};
+            for (std::size_t position = 0; position < subscripts.size(); ++position)
+            {
+                const auto extent = (position < dims.size()) ? dims[position] : std::size_t{1};
+                const auto index = zero_based(position);
+                if (index >= extent)
+                    utilities::error("get_nested: subscript {} of field {} is out of bounds for size {} while processing {}", position + 1, name, dims, field);
+                linear += index * stride;
+                stride *= extent;
+            }
+            return linear;
+        }
+
+        // Element access that works for struct arrays of any shape.  ``str[i]``
+        // only ever supplies a single index, which the matlab data api rejects
+        // with "Not enough indices provided" on anything but a vector; iterating
+        // is column major and takes the one linear index we have.
+        template <typename _StructArray>
+        inline matlab::data::ArrayRef element_field(_StructArray &level, const std::size_t element, const std::string &name)
+        {
+            auto it = level.begin();
+            std::advance(it, static_cast<std::ptrdiff_t>(element));
+            return (*it)[name];
+        }
+
+        template <typename _Scalar>
+        inline matlab::data::Array scalar_element(const matlab::data::Array &leaf, const std::size_t linear)
+        {
+            const matlab::data::TypedArray<_Scalar> typed(leaf);
+            matlab::data::ArrayFactory factory;
+            return factory.createScalar<_Scalar>(*(typed.cbegin() + static_cast<std::ptrdiff_t>(linear)));
+        }
+
+        // Element ``linear`` of ``leaf`` as a 1x1 array of the same type -- the
+        // value a trailing subscript on the last segment of a field
+        // specification addresses.
+        inline matlab::data::Array element_of(const matlab::data::Array &leaf,
+                                              const std::size_t linear,
+                                              const std::string_view name,
+                                              const std::string_view field)
+        {
+            matlab::data::ArrayFactory factory;
+            switch (leaf.getType())
+            {
+            case matlab::data::ArrayType::DOUBLE:         return details::scalar_element<double>(leaf, linear);
+            case matlab::data::ArrayType::SINGLE:         return details::scalar_element<float>(leaf, linear);
+            case matlab::data::ArrayType::LOGICAL:        return details::scalar_element<bool>(leaf, linear);
+            case matlab::data::ArrayType::INT8:           return details::scalar_element<std::int8_t>(leaf, linear);
+            case matlab::data::ArrayType::UINT8:          return details::scalar_element<std::uint8_t>(leaf, linear);
+            case matlab::data::ArrayType::INT16:          return details::scalar_element<std::int16_t>(leaf, linear);
+            case matlab::data::ArrayType::UINT16:         return details::scalar_element<std::uint16_t>(leaf, linear);
+            case matlab::data::ArrayType::INT32:          return details::scalar_element<std::int32_t>(leaf, linear);
+            case matlab::data::ArrayType::UINT32:         return details::scalar_element<std::uint32_t>(leaf, linear);
+            case matlab::data::ArrayType::INT64:          return details::scalar_element<std::int64_t>(leaf, linear);
+            case matlab::data::ArrayType::UINT64:         return details::scalar_element<std::uint64_t>(leaf, linear);
+            case matlab::data::ArrayType::COMPLEX_DOUBLE: return details::scalar_element<std::complex<double>>(leaf, linear);
+            case matlab::data::ArrayType::COMPLEX_SINGLE: return details::scalar_element<std::complex<float>>(leaf, linear);
+            case matlab::data::ArrayType::CHAR:
+            {
+                const matlab::data::CharArray characters(leaf);
+                return factory.createCharArray(std::u16string(1, characters.toUTF16()[linear]));
+            }
+            case matlab::data::ArrayType::MATLAB_STRING:
+            {
+                const matlab::data::StringArray strings(leaf);
+                matlab::data::StringArray element = factory.createArray<matlab::data::MATLABString>({1, 1});
+                element[0] = *(strings.cbegin() + static_cast<std::ptrdiff_t>(linear));
+                return element;
+            }
+            case matlab::data::ArrayType::CELL:
+            {
+                const matlab::data::CellArray cells(leaf);
+                matlab::data::CellArray element = factory.createArray<matlab::data::Array>({1, 1});
+                element[0] = *(cells.cbegin() + static_cast<std::ptrdiff_t>(linear));
+                return element;
+            }
+            case matlab::data::ArrayType::STRUCT:
+            {
+                matlab::data::StructArray structs(leaf);
+                auto names = structs.getFieldNames();
+                const std::vector<std::string> fieldnames(names.begin(), names.end());
+                matlab::data::StructArray element = factory.createStructArray({1, 1}, fieldnames);
+                auto selected = *(structs.begin() + static_cast<std::ptrdiff_t>(linear));
+                for (const auto &fieldname : fieldnames)
+                    element[0][fieldname] = matlab::data::Array(selected[fieldname]);
+                return element;
+            }
+            default:
+                utilities::error("get_nested: cannot subscript the {} typed leaf {} while processing {}",
+                                 static_cast<int>(leaf.getType()), name, field);
+                return leaf;
+            }
+        }
+
+        // Resolve a nested field specification such as ``a.b[2].c[1,3].d`` against a
+        // struct array and hand back a reference to the whole leaf field.  A
+        // subscript belongs to the struct array the segment names and selects the
+        // element the *following* segment is read from; the subscripts of the last
+        // segment are reported through ``leaf`` for the caller to apply to the leaf
+        // value.  Subscripts are zero based unless ``fortranIndex`` is set, in which
+        // case they follow the one based modelica convention.
+        inline matlab::data::ArrayRef walk_nested_field(matlab::data::StructArray& str, const std::string_view field, bool fortranIndex, details::field_segment &leaf) {
+            std::vector<std::string_view> segments;
+            for (std::string_view remainder = field;;)
+            {
+                const auto dot = remainder.find_first_of('.');
+                segments.push_back(remainder.substr(0, dot));
+                if (std::string_view::npos == dot)
+                    break;
+                remainder.remove_prefix(dot + 1);
+            }
+
+            // ``level`` is the struct array the current segment is looked up in --
+            // empty for the root ``str`` -- and ``element`` the element of it that
+            // the previous segment's subscript selected.  ``std::optional`` because
+            // ``StructArrayRef`` has no default constructor: the previous
+            // implementation reinterpret_cast'ed one reference onto another to
+            // rebind it, which quietly produced an invalid reference (and a matlab
+            // crash) whenever a level was not the struct array it was assumed to be.
+            std::optional<matlab::data::StructArrayRef> level;
+            std::size_t element{0};
+
+            auto lookup = [&](const std::string &name) {
+                auto fieldnames = level ? level->getFieldNames() : str.getFieldNames();
+                if (std::find(fieldnames.begin(), fieldnames.end(), name) == fieldnames.end())
+                    utilities::error("get_nested: invalid field name {} on total field {}", name, field);
+
+                if (0 == (level ? level->getNumberOfElements() : str.getNumberOfElements()))
+                    utilities::error("get_nested: field {} is empty while processing {}", name, field);
+
+                return level ? details::element_field(*level, element, name)
+                             : details::element_field(str, element, name);
+            };
+
+            for (std::size_t i = 0; i + 1 < segments.size(); ++i)
+            {
+                const auto segment = details::parse_field_segment(segments[i], field);
+                const std::string name(segment.name);
+
+                auto value = lookup(name);
+                if (matlab::data::ArrayType::STRUCT != value.getType())
+                    utilities::error("get_nested: field {} is not a struct while processing {}", name, field);
+
+                level.emplace(value);
+                element = details::to_linear_index(level->getDimensions(), segment.subscripts, fortranIndex, name, field);
+            }
+
+            leaf = details::parse_field_segment(segments.back(), field);
+            return lookup(std::string(leaf.name));
+        }
+    }
+
+    // Reference to the whole leaf field of a nested field specification.  Any
+    // subscript on the last segment is *not* applied -- use
+    // ``get_nested_field`` for that -- because a single element of a numeric
+    // leaf has no ``ArrayRef`` representation to alias.
+    // ``inline`` rather than ``static``: with internal linkage every consuming
+    // TU gets its own copy, and any TU that does not call it trips
+    // "unreferenced function with internal linkage" (MSVC C4505) or
+    // -Wunused-function.
+    inline matlab::data::ArrayRef get_nested_field_ref(matlab::data::StructArray& str, const std::string_view field, bool fortranIndex = false) {
+        details::field_segment leaf;
+        return details::walk_nested_field(str, field, fortranIndex, leaf);
+    }
+
+    // Value addressed by a nested field specification such as
+    // ``a.b[2].c[1,3].d`` or ``boat.boardP.liftingLine[1,2].f_flap[3,1]``.  A
+    // subscript on the last segment selects that single element of the leaf and
+    // is returned as a 1x1 array of the leaf's type.
+    inline matlab::data::Array get_nested_field(matlab::data::StructArray& str, const std::string_view field, bool fortranIndex = false) {
+        details::field_segment leaf;
+        matlab::data::Array value = details::walk_nested_field(str, field, fortranIndex, leaf);
+
+        if (leaf.subscripts.empty())
+            return value;
+
+        const auto linear = details::to_linear_index(value.getDimensions(), leaf.subscripts, fortranIndex, leaf.name, field);
+        return details::element_of(value, linear, leaf.name, field);
     }
 
 // This function appears to have all sorts of issues but it functions correctly when tested, hence we mute the issues.
