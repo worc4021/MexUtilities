@@ -152,6 +152,44 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(MexUtilities INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include cstdint>")
 endif()
 
+# MinGW links the gcc runtime dynamically by default, so every mex and every
+# test executable ends up needing libgcc_s_seh-1.dll, libstdc++-6.dll and
+# libwinpthread-1.dll out of the toolchain's bin directory.  Matlab knows
+# nothing about that directory, so loading such a mex fails with the unhelpful
+#
+#     Invalid MEX-file '...': The specified module could not be found.
+#
+# unless whoever runs it puts mingw on PATH first.  Link the gcc runtime
+# statically instead so the binaries stand on their own.
+#
+# -static-libgcc/-static-libstdc++ deal with the first two but not with
+# winpthread: gcc's own spec emits "-Bstatic -lstdc++ -Bdynamic", so the
+# implicit -lwinpthread that follows is resolved against the import library no
+# matter what we append to the link line.  Pulling libwinpthread.a in with
+# --whole-archive defines those symbols up front, which leaves the dynamic one
+# with nothing to satisfy.  Plain -static would handle all three at once but
+# refuses to link the targets that need matlab's BLAS import libraries
+# (page_times, catandpagetimes).
+#
+# The generator expression keeps the flags off consumers of the *installed*
+# package that build with a different compiler than this one was configured
+# with; linux needs none of it, since the gcc runtime is always present.
+if(WIN32 AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=libwinpthread.a
+        OUTPUT_VARIABLE MexUtilities_WinPthread
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET)
+    if(EXISTS "${MexUtilities_WinPthread}")
+        target_link_options(MexUtilities INTERFACE
+            "$<$<CXX_COMPILER_ID:GNU>:-static-libgcc;-static-libstdc++;-Wl,--whole-archive;${MexUtilities_WinPthread};-Wl,--no-whole-archive>")
+    else()
+        target_link_options(MexUtilities INTERFACE
+            "$<$<CXX_COMPILER_ID:GNU>:-static-libgcc;-static-libstdc++>")
+        message(WARNING "libwinpthread.a not found: mingw built binaries will still need libwinpthread-1.dll on PATH")
+    endif()
+endif()
+
 set(MexUtilitiesLibraries fmt::fmt)
 if(NOT NO_MATLAB)
 list(APPEND MexUtilitiesLibraries Matlab::mex)
